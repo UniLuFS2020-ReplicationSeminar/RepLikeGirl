@@ -1,31 +1,294 @@
 ---
-title: "Replicate like a Girl"
-author: "Monica Perez C."
+title: "Replication of 'You Research Like a Girl: Gendered Research Agendas and Their Implications'"	
+#[original data] (https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/L55JBL)
+author: "Monica Perez Contreras on Key,Ellen (2019)"
 date: "5/16/2020"
 output: html_document
 ---
 
 
+## Introduction
+
+The authors explored the hypothesis that women’s political careers are slower to advance because they do not publish as much as men. By studying published dissertations, the authors identified that some research topics seem to be favoured by each gender and thus are also published with more frequency by top journals. While research has not found evidence of systematic bias on political research journals, the authors do find evidence of topic bias, despite it being proportional to dissertation research.
+
+### Citation
+Key, Ellen, 2019, "Replication Data for: You Research Like a Girl: Gendered Research Agendas and Their Implications", https://doi.org/10.7910/DVN/L55JBL, Harvard Dataverse, V1, UNF:6:7GnMVLlPMmfZN+QYSGE/Gg== [fileUNF] 
+
+### Inferred research design
+While the research paper was published under two authors, the replication data has been uniquely mentioned under Ms Key, so all mention here must be understood as plural. They claimed that there's abundance of gendered research in STEM but less so in political science, summarily put, the following is the failure path 
+
+#.letter format +, reduce somehow  
+
+> Choice of research agenda  (write articles about gender and racial issues)   
+> -----> Perception gap (women use qualitative methods more often, use new theoretical approaches)  
+> ---------> submission gap (less top-ranked journals, more pink ghettos)  
+> ------------> citation gap (less audience than men)  
+> --------------->  diminished prospects for promotion and tenure  
+
+
+  * Method.- the authors “used structural topic model (STM) (Roberts, Stewart, and Tingley 2014) and created a new and comprehensive dataset of dissertation abstracts.”( Key, Ellen 2019). While the STM Vignette is comprehensive, I also decided to look at the CRAN documentation and watched a video from Julia Silge, on how to use STM by topic modeling the Adventures of Sherlock Holmes (https://juliasilge.com/blog/sherlock-holmes-stm/).
+  
+  * Variables.- "current substructures of research fields give an incomplete view of gendered topics since existing research is based on conferences attendance and publications" (Breuning and Lu 2010; Maliniak et al. 2008). The authors had considered the APSA Sections (American Political Science Association) for characteristic aselection but decided against it, probably because it would be a potential confounder. Today the APSA contains 48 sections on significant research topics for political science. The results of the authors research found 61 topics. 
+
+  * Source.- the authors collected a new dataset from the ProQuest Central database. A specific search for words containing "poli" was used to identify Political Science. At least in one case I found Democracy nt considered withing the trend, however, as it was associated with main topic, the dissertation was inclusive.
+
+  * Scope.- to avoid confounders present in existing research, such as “the biases associated with publication and section memberships” ( Key, Ellen 2019), the authors decided to focus on the selection of English language dissertations from the years from 2000 to 2013, which listed as its first subject “political science,” “politics,” or “government”, resulting in an original sample size of 2,055 dissertations, with a final sample size of 1543 after controls were executed (more on this below).   
+
+* Data structure (columns)
+  * author’s name 
+  * dissertation title 
+  * abstract
+  * year 
+  * Confounders
+    * Gender:
+      * 659 dissertations (36.4%) = woman-authored 
+      * 973 that were man-authored (53.8%)
+      * 176 (9.7%) for which authors were unable to predict the author’s gender
+    * School effects control (i.e., a probable confounder between topic and gender), omitted from schools with fewer than three filed dissertations. 
+    * Dissertations without abstracts: removed two dissertations  
+
+*NOTE:* p664 “We used authors’ first (given) names to probabilistically predict their gender (Sumner 2018).5” look at the footnote. They checked with hand coded to review it didn’t change much. but excluded from study(note6). 
+
+*Can I use Data Mining to identify the authors gender?* 
+
+
+### Structural Topic Model (STM) 
+
+review of abstracts
+topics: words often used together
+prevalence: how frequently those topics appeared in each dissertation
+covariance with topic prevalence: author characteristics (note 7)
+
+*NOTE:* 7) In addition to gender Controlled for time and school, both of which we expected to be confounding variables in the regressions. 
+__*HOW?*__ Look at gender and that is a control?
+
+
+__STM__ allows topics to be generated by the data rather than be defined beforehand, producing two quantities of interest:  
+__A.__ associations between those topics and author characteristics. [^note]      
+__B.__ a group of topics identified by groupings of words 
+
+1. “The first step in estimating this model was determining the number of topics most likely to exist in the data.”We thought “the number of topics is equal to the number of APSA sections”—“we decided instead to take a data-driven approach” identifying 61 topics   
+3. “analyze which topics emerged and how they covaried with gender. Topics were identified by the lists of words that occurred within them. We used the FREX (i.e., FRequent and EXclusive) measure favored by Roberts, Stewart, and Tingley (2014).“    
+5. "Intuitive labels (appendix C) ... are not important and are debatable, but they are useful as shorthand"  
+
+6. P665 “series of linear regressions in which the dependent variable was topic prevalence in an abstract and the independent variables were whether the author was a woman, the author’s school, and the year.”  … “Topics with coefficients to the right of the dashed line are more likely to appear in woman-authored dissertations; dots to the left are less likely to appear in woman-authored dissertations (or are more likely to be written about by men). The solid lines are 95% confidence intervals.“     
+7. “We found that there are topics systematically associated with women and fewer systematically associated with men. “  
+*The graph looks heavier on the men side. What do the mean by systematically? Since voting (4 topics) are men cause they’re negative for women. * 
+
+8. disproportionately written about by women include race, health- care, narrative and discourse, and branches of government   
+
+9. most topics “trend” gendered even if they were not statistically significant ???  
+  
+
+[^note]: quoted "Consistent with the advice in Roberts, Stewart, and Tingley (2014), we used spectral initialization for the initial estimation and global uncertainty when estimating the differences."    
+
+
+*What is spectral initialization? Global uncertainty?* 
+*https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/you-research-like-a-girl-gendered-research-agendas-and-their-implications/6017F061B759D870183FC6D8A71C1DCF *
+
+----
+
+# HERE I GO
+## Replication preparation
+
+Once  I was ready to work with the code and to facilitate replicability, I opened a project called RepLikeGirl, where tidy structures and ["Good Enough Practices"]( http://swcarpentry.github.io/good-enough-practices-in-scientific-computing/.) are taken into account. This project is linked to GitHub ADDLINK
+
+I set up the Markdown directory to knit under my directory Source, since here is where I am saving the R files. I have the reference copy of the R code from the Harvard Dataverse in this folder, so I do not touch the original Data. 
+
+My very first problem was that Markdown does not recongnize the link to the DOI as part of the title so I had to comment it (see at the top of this Markdown file). Other links worked fine and chunks have given me no issue. In general I have followed this process to solve issues:
+
+* Develop code in chunks and execute the chunks until they work, then move on.
+* knit the document regularly to check for errors. When I have an error:
+    1. pay attention to the paths and home directories
+    2. review the synthax
+    3. split the code to its minimal elements and run individual  
+    4 run the code in the console, if this works  
+      * restart R  
+      * do 1 to 3, then run all the related chunks   
+      * google for an answer  
+      * restart at 1 till problem is solved or I've spent aproximately 45 min.  
+      * go to sleep  or at least make a time out, do it all once again  
+      * tag Andrea for help  
+
+## Replication implementation
+
+To set global options that apply to every chunk in a file, call knitr::opts_chunk. Knitr will treat each option that passed on to knitr::opts_chunk$set as a global default that can be overwritten in individual chunk headers.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+__*Code Line 1*__  
+By looking at the first line of code, I realized I needed the "here" function to building paths to my project files, so installing that package and loading the library in the console were the next thing to do 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
+#setwd("C:/Users/Jane Sumner/Dropbox/Gendered Research Agendas")
+#commented Line 1 and replaced the hard path with here()
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+#install.packages("here") 
+library(here)
+here::here("data")
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+For the replication script, R complained that the following packages were not installed, so I started there, though I did it in the console.  
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+I had accepted compiling from CRAN sources, but had an error with RcppArmadillo because I do not have any compiler tools installed.  I ran again install packages and this time I answered "No", I have an older version now, but for MAC the recommendation from R Support is to take only compiled binaries as delivered from CRAN anyway. I'm commenting the code on the chunk so it is not running every time I knit.
+
+```{r}
+#install.packages(c("SnowballC", "stm"))
+#library(stringr)  
+#library(stm)  
+#library(SnowballC) 
+
+#library(tidyverse) was not ran ???
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+__*Code Line 7*__  
+Reading the data was problematic, so I decided to remove strings as factors from the original line until the path problem is solved.  The path with here() gave me trouble, I found an explanation in @JenRichmondPhD twitter where the recomendation to use the code including all data path's names but it wouldn't knit 
+
+\> data <- read_csv(here("data", "dissertation-data-clean.csv"))  
+\> Error in file(file, "rt") : cannot open the connection  
+\> In addition: Warning message:  
+\> In file(file, "rt") :  
+\> cannot open file '/Users/msfogg/Documents/GitHub/RepLikeGirl/dissertation-data-clean.csv': No such file \> or directory
+
+I finally cleaned sessions, restarted Rstudio and it worked.
+
+```{r}
+diss_test <- read.csv(here("data", "dissertation-data-clean.csv"))
+rm(diss_test)
+```
+
+Reading the csv file to create a data set is finally working, now that I added "data", so I can return the original code line of stringAsFactors = F. I assume the researchers were not planning to change the type of strings they were to use in the data frame. I noted that the here function must be closed after path and files, not after stringsAsFactors. 
+
+```{r}
+diss <- read.csv(here("data", "dissertation-data-clean.csv"), stringsAsFactors=F)
+```
+
+Created a smaller table with only interestic columns so I can relate faster to the data.
+
+```{r}
+#Not worked SKIP, need dplyr 
+#diss_short <- diss %>% select( 1 : 2 )  
+```
+
+RANDOM for memory
+```{r}
+ncol(diss)
+dim(diss)
+s <- summary(diss)
+diss_structure <- names(diss)
+diss_head <- head(diss)
+```
+
+__*Code Line 10*__  
+This histogram was not printed in the research paper, but it's included in the replication data. Changed 
+col="gray" to "light blue"
+breaks=seq, kept number of bars  since it makes no difference to calendar years
+
+Consider using ggplot for this, then use geom_histogram(binwidth=your bin width) –
+https://stackoverflow.com/questions/29693102/how-to-control-plot-height-size-in-interactive-rmarkdown-with-shiny
+
+
+```{r}
+# Not exactly Figure A1, because the replication data is subset to only the data we used in the analysis,
+# but it conveys similar information.
+hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light blue",
+     breaks=seq(1999.5,2013.5,1),xlab="year")
+```
+     
+
+```{r fig2, fig.width = 4, fig.height = 3}
+# Made histogram smaller, then changed to both "FD" and 13 bars, one bar for each year but the largest 
+# change is observable, only on first year so I understand why the kept it from half year to the next
+#knitr::opts_chunk$set(fig.width=6, fig.height=4)  
+hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light green",
+     breaks=13,xlab="year")
+```  
+----     
+     
+__*Code Line 15*__
+
+The data was delivered cleaned and with pre-calculated probability for gender estimation. I presume the value of useNAwas set to always in case data was searched for advisor, as there are more than 1 advisors for some dissertations, the possibility of finding NA is high.
+
+
+Tabulating the data for the variable gender and its frequency. Cross tabulated for gender inference between high and low probabilities of the author being a woman (value 1).
+Dichotomous = due to the possibility of genderless names, such as Shu.
+
+Loose or average probability of the author being female:
+```{r}
+# Dichotomous coding of author gender, both loose (Pr(woman)>.5 => "woman") and  "woman",
+# strict (Pr(woman)>=.7 => Pr(woman)<=.3 => "man").
+table(diss$woman.loose,useNA="always")
+round(table(diss$woman.loose,useNA="always")/sum(table(diss$woman.loose,
+      useNA="always")),3)
+```
+
+Strict or above average probability of the author being female:
+```{r}
+table(diss$woman.strict,useNA="always")
+round(table(diss$woman.strict,useNA="always")/sum(table(diss$woman.strict,
+                                                       useNA="always")),3)
+```
+
+Both calculations returned the same amount of assumed male authored dissertations at 913 or 59% and female authored dissertations at 630 or 40.8%. Hence reasurring that gender selection is accurate above average.
+
+The paper reports findings based on the complete dataset. On the Research design explanation (p. 664) they clarify that they 
+
+* identified 659 dissertations (36.4%) as woman-authored  
+* identified 973 dissertations that were man-authored (53.8%)  
+* omitted 176 entries (9.7%) where they couldn't identify the gender  
+
+Further, they decided to omit schools that filed less than three dissertations and two dissertations that had no abstracts. Hence, the results presented on the paper for 2055 entries do not match with the results in the replicated code for 1543 entries above. 
+
+```{r}
+#proportional difference between published paper and replication results with final dataset.
+#use results from above in an object to recalculate the 10% dii?
+
+```
+
+
+Having compared the difference in both results, with a 10% difference in both sets, I conclude that the difference is not significant.
+
+
+THESE NUMBERS 
+```{r}
+sum(table(diss$woman.strict,useNA="always"))
+659+973+176
+# this addition is 1808, less 176 is still higher than the 1543. percentages are ok though. #what to do?
+x = 36.4+53.8+9.7 
+x
+print(" percentage of published numbers does amount to almost 100%")
+
+```
+
+
+
+
+
+__*Code Line   *__
+
+
+```{r}
+# Figure A2 in Supplementary Online Appendices 
+barplot(t(table(diss$year,diss$woman.strict)),legend.text=c("Man","Woman"),
+        main="Dissertations Filed With Proquest Per Year\nand Gender",ylim=c(0,250))
+```
+ 
+ 
+ 
+
+__*Code Line   *__
+
+
+```{r}
+
+```
+
+ 
+
+
+
+
