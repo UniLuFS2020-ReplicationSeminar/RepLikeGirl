@@ -26,7 +26,7 @@ While the research paper was published under two authors, the replication data h
 > --------------->  diminished prospects for promotion and tenure  
 
 
-  * Method.- the authors “used structural topic model (STM) (Roberts, Stewart, and Tingley 2014) and created a new and comprehensive dataset of dissertation abstracts.”( Key, Ellen 2019). While the STM Vignette is comprehensive, I also decided to look at the CRAN documentation and watched a video from Julia Silge, on how to use STM by topic modeling the Adventures of Sherlock Holmes (https://juliasilge.com/blog/sherlock-holmes-stm/).
+  * Method.- the authors “used structural topic model (STM) (Roberts, Stewart, and Tingley 2014) and created a new and comprehensive dataset of dissertation abstracts.”( Key, Ellen 2019). While the STM Vignette is comprehensive, I also decided to look at the CRAN documentation and watched a video from Julia Silge (Data scientist and software engineer at RStudio) on how to use STM by topic modeling the Adventures of Sherlock Holmes (https://juliasilge.com/blog/sherlock-holmes-stm/).
   
   * Variables.- "current substructures of research fields give an incomplete view of gendered topics since existing research is based on conferences attendance and publications" (Breuning and Lu 2010; Maliniak et al. 2008). The authors had considered the APSA Sections (American Political Science Association) for characteristic aselection but decided against it, probably because it would be a potential confounder. Today the APSA contains 48 sections on significant research topics for political science. The results of the authors research found 61 topics. 
 
@@ -136,10 +136,11 @@ For the replication script, R complained that the following packages were not in
 I had accepted compiling from CRAN sources, but had an error with RcppArmadillo because I do not have any compiler tools installed.  I ran again install packages and this time I answered "No", I have an older version now, but for MAC the recommendation from R Support is to take only compiled binaries as delivered from CRAN anyway. I'm commenting the code on the chunk so it is not running every time I knit.
 
 ```{r}
-#install.packages(c("SnowballC", "stm"))
+#install.packages(c("SnowballC", "stm", "tm"))
 #library(stringr)  
 #library(stm)  
 #library(SnowballC) 
+#library(tm)
 
 #library(tidyverse) was not ran ???
 ```
@@ -253,7 +254,7 @@ Further, they decided to omit schools that filed less than three dissertations a
 Having compared the difference in both results, with a 10% difference in both sets, I conclude that the difference is not significant.
 
 
-THESE NUMBERS 
+THESE EF NUMBERS 
 ```{r}
 sum(table(diss$woman.strict,useNA="always"))
 659+973+176
@@ -268,8 +269,9 @@ print(" percentage of published numbers does amount to almost 100%")
 
 
 
-__*Code Line   *__
+__*Code Line 25 *__
 
+Informative plot based on the numbers above, not on the replicated/published paper.
 
 ```{r}
 # Figure A2 in Supplementary Online Appendices 
@@ -278,17 +280,129 @@ barplot(t(table(diss$year,diss$woman.strict)),legend.text=c("Man","Woman"),
 ```
  
  
- 
 
-__*Code Line   *__
+__*Code Line 30 *__
+The purpose of a structural model is to find the most recurrent words and its pairings in a text. It is not a matter of just happening a lot, it will identify if the words happen in similar contexts, formally known as topic prevalence. 
+
+For this purpose, each dissertation is one row in the csv file, and there are various covariates, hence I assume this is a quanteda dfm  object (document-feature  matrix). 
+
+__Step 1__ To prepare for STM, simple text must be transformed to fit the function's format. Function textProcessor is used here, "Function that takes in a vector of raw texts (in a variety of languages) and performs basic operations.This  function  is  essentially  a  wrapper __tm__ package  where  various  user  specified options can be selected." (CRAN package description).
+
+*documents*   A list containing the documents in the stm format
+*meta*   Data frame or matrix containing the user-supplied metadata for the retained doc-uments.
+
+Here they only used the contents of the variable "Abstract" and assigned the dataframe *diss* to construct the metadata source.
+> textProcessor(documents, metadata = NULL)
+
+The code will not knit because I am missing *tm* package: 
+*Error in textProcessor(diss$Abstract, meta = diss) : Please install tm package to use this function. You will also need SnowballC if stemming.*
+So I added it on to the chunk above (ca. line 143) and NLP got loaded as well. Ran the code and worked nicely. Because language defaults to English, I assume it will use the default available stopwords (common words that are not significant for a topic such as *"the"*). One could use their own array of stopwords if necessary by using parameter *customstopwords*, which may be necessary for certain research.
 
 
 ```{r}
+# 1. Setting up the STM
+#tx <- textProcessor(diss$Abstract,meta=diss)
+```
+*Output:*  
+Building corpus... 
+Converting to Lower Case... 
+Removing punctuation... 
+Removing stopwords... 
+Removing numbers... 
+Stemming... 
+Creating Output... 
+
+I tried to knit here but it tells me it cannot find the function, though I can see *tx* in the environment. I executed the next line (2) without trouble.
+
+
+__Step 2__ As per recomendation (p. 69, *Details*), prepDocuments has been used to further prune infrequent words.
+
+By looking at the contents of documents (the data obtained from variable *"Abstracts"*), values in the vocabulray and metadata, with a minimum treshold of 15 repetitions per word, the function
+"Performs several corpus manipulations including removing words and renumbering word indices(to correct for zero-indexing and/or unused words in the vocab vector)."(CRAN package description).
+
+
+```{r}
+# 2. Setting up the STM
+#out <- prepDocuments(tx$documents, tx$vocab, tx$meta, lower.thresh=15)
+```
+*Output:*  
+Removing 10914 of 12598 terms (25968 of 167892 tokens) due to frequency 
+Your corpus now has 1543 documents, 1684 terms and 141924 tokens.
+
+__Step 3__ Assigned the lists of the 1543 dissertations combination of words to object docs.
+
+```{r}
+# 3. Setting up the STM
+#docs <- out$documents
+```
+list's contents: ![](../output/stm3-docs.png)
+
+
+__Step4__ Assigned the words of the created vocabulary to a characer vector.
+
+```{r}
+# 4. Setting up the STM
+#vocab <- out$vocab
+#head(vocab)
+```
+*Output:*  
+[1] "-call"    "-depth"   "abil"     "abl"      "absenc"   "abstract"
+
+
+__Step5__ created data element with the selected document metadata, that is, very much the original file *"dissertation-data-clean.csv"*
+
+```{r}
+# 5. Setting up the STM
+#meta <-out$meta
+```
+
+---
+KEEP?
+
+__From the Vignette, function usage__  
+
+stm(documents, vocab, K, prevalence = NULL, content = NULL, data = NULL, init.type = c("Spectral", "LDA", "Random", "Custom"), seed = NULL, max.em.its = 500, emtol = 1e-05, verbose = TRUE, reportevery = 5, LDAbeta = TRUE, interactions = TRUE, ngroups = 1, model = NULL, gamma.prior = c("Pooled", "L1"), sigma.prior = 0, kappa.prior = c("L1", "Jeffreys"),control = list())
+
+__Data__ 
+an optional data frame containing the prevalence and/or content covariates.  If unspecified the variables are taken from the active environment
+KEEP?
+
+---
+
+## The actual STM building
+
+
+```{r}
+# # This part is how we determined the number of topics. I suggest not running it unless you're quite curious,
+# # as it takes forever. It'll also yield a slightly different number every time, just by the nature of simulation.
+# K.store <- NULL
+# for(i in 1:100){
+# K <- 0 #0
+# fit <- stm(out$documents, out$vocab, K =K,
+#                       prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 5,
+#                       data = meta, init.type = "Spectral")
+# K.store <- c(K.store,nrow(labelTopics(fit)$frex))
+# 
+# }
+# par(mar=c(4.1,4.1,4.1,1.1),mgp=c(2.1,.5,.5))
+# hist(K.store,main="Discovered Topics",col="gray",xlab="number of topics",breaks=seq(min(K.store)-.5,max(K.store)+.5,1))
 
 ```
 
- 
 
 
+
+
+# Estimation
+topics and prevalence from abstracts as a function of binary gender, controlling for school and year
+
+```{r}
+# Step 1: Estimate topics and prevalence from abstracts as a function of binary gender, 
+# controlling for school and year
+#K <- 61
+#fit <- stm(out$documents, out$vocab, K =K,
+#           prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 100,
+#           data = meta, init.type = "Spectral")
+```
 
 
