@@ -1,0 +1,708 @@
+
+> knitr::opts_chunk$set(echo = TRUE)
+> #setwd("C:/Users/Jane Sumner/Dropbox/Gendered Research Agendas")
+> #commented Line 1 and replaced the hard path with here()
+> 
+> #install.packages("here") 
+> library(here)> 
+> #install.packages(c("Rtsne", "rsvd", "geometry"))
+> # message: also installing the dependencies ‘abind’, ‘magic’, ‘lpSolve’, ‘linprog’, ‘RcppProgress’
+> library(Rtsne)
+> library(rsvd)
+> library(geometry)
+> 
+> #diss_test <- read.csv(here("data", "dissertation-data-clean.csv"))
+> #rm(diss_test)
+> diss <- read.csv(here("data", "dissertation-data-clean.csv"), stringsAsFactors=F)
+> ncol(diss)
+[1] 86
+> dim(diss)
+[1] 1543   86
+> s <- summary(diss)
+> diss_structure <- names(diss)
+> diss_head <- head(diss)
+> # Not exactly Figure A1, because the replication data is subset to only the data we used in the analysis,
+> # but it conveys similar information.
+> hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light blue",
++      breaks=seq(1999.5,2013.5,1),xlab="year")
+> # Made histogram smaller, then changed to both "FD" and 13 bars, one bar for each year but the largest 
+> # change is observable, only on first year so I understand why the kept it from half year to the next
+> #knitr::opts_chunk$set(fig.width=6, fig.height=4)  
+> hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light green",
++      breaks=13,xlab="year")
+> # Dichotomous coding of author gender, both loose (Pr(woman)>.5 => "woman") and  "woman",
+> # strict (Pr(woman)>=.7 => Pr(woman)<=.3 => "man").
+> table(diss$woman.loose,useNA="always")
+
+   0    1 <NA> 
+ 913  630    0 
+> round(table(diss$woman.loose,useNA="always")/sum(table(diss$woman.loose,
++       useNA="always")),3)
+
+    0     1  <NA> 
+0.592 0.408 0.000 
+> table(diss$woman.strict,useNA="always")
+
+   0    1 <NA> 
+ 913  630    0 
+> round(table(diss$woman.strict,useNA="always")/sum(table(diss$woman.strict,
++                                                        useNA="always")),3)
+
+    0     1  <NA> 
+0.592 0.408 0.000 
+> #proportional difference between published paper and replication results with final dataset.
+> #use results from above in an object to recalculate the 10% dii?
+> 
+> sum(table(diss$woman.strict,useNA="always"))
+[1] 1543
+> 659+973+176
+[1] 1808
+> # this addition is 1808, less 176 is still higher than the 1543. percentages are ok though. #what to do?
+> x = 36.4+53.8+9.7 
+> x
+[1] 99.9
+> print(" percentage of published numbers does amount to almost 100%")
+[1] " percentage of published numbers does amount to almost 100%"
+> 
+> # Figure A2 in Supplementary Online Appendices 
+> barplot(t(table(diss$year,diss$woman.strict)),legend.text=c("Man","Woman"),
++         main="Dissertations Filed With Proquest Per Year\nand Gender",ylim=c(0,250))
+> # 1. Setting up the STM
+> tx <- textProcessor(diss$Abstract,meta=diss)
+Building corpus... 
+Converting to Lower Case... 
+Removing punctuation... 
+Removing stopwords... 
+Removing numbers... 
+Stemming... 
+Creating Output... 
+> # 2. Setting up the STM
+> out <- prepDocuments(tx$documents, tx$vocab, tx$meta, lower.thresh=15)
+Removing 10914 of 12598 terms (25968 of 167892 tokens) due to frequency 
+Your corpus now has 1543 documents, 1684 terms and 141924 tokens.
+> # 3. Setting up the STM
+> docs <- out$documents
+> # 4. Setting up the STM
+> vocab <- out$vocab
+> 
+> # Mona wants to see 
+> head(vocab)
+[1] "-call"    "-depth"   "abil"     "abl"      "absenc"   "abstract"
+> # 5. Setting up the STM
+> meta <-out$meta
+> # # This part is how we determined the number of topics. I suggest not running it unless you're quite curious,
+> # # as it takes forever. It'll also yield a slightly different number every time, just by the nature of simulation.
+> # K.store <- NULL
+> #  for(i in 1:100){
+> #  K <- 0 #0
+> #  fit <- stm(out$documents, out$vocab, K =K,
+> #                        prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 5,
+> #                        data = meta, init.type = "Spectral")
+> #  K.store <- c(K.store,nrow(labelTopics(fit)$frex))
+> #  
+> #  }
+> #  par(mar=c(4.1,4.1,4.1,1.1),mgp=c(2.1,.5,.5))
+> #
+> # hist(K.store,main="Discovered Topics",col="gray",xlab="number of #topics",breaks=seq(min(K.store)-.5,max(K.store)+.5,1))
+> 
+> # Step 1: Estimate topics and prevalence from abstracts as a function of binary gender, 
+> # controlling for school and year
+> K <- 61
+> fit <- stm(out$documents, out$vocab, K =K,
++            prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 100,
++            data = meta, init.type = "Spectral")
+Beginning Spectral Initialization 
+	 Calculating the gram matrix...
+	 Finding anchor words...
+ 	.............................................................
+	 Recovering initialization...
+ 	................
+Initialization complete.
+......................................................................................................
+Completed E-Step (3 seconds). 
+Completed M-Step (80 seconds). 
+Completing Iteration 1 (approx. per word bound = -6.467) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (42 seconds). 
+Completing Iteration 2 (approx. per word bound = -6.355, relative change = 1.722e-02) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (28 seconds). 
+Completing Iteration 3 (approx. per word bound = -6.308, relative change = 7.454e-03) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (21 seconds). 
+Completing Iteration 4 (approx. per word bound = -6.284, relative change = 3.859e-03) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (17 seconds). 
+Completing Iteration 5 (approx. per word bound = -6.269, relative change = 2.287e-03) 
+Topic 1: environ, polit, recruit, parti, select 
+ Topic 2: constitut, canada, canadian, polit, thesi 
+ Topic 3: ident, latino, ethnic, group, polit 
+ Topic 4: polit, chapter, moral, human, concept 
+ Topic 5: use, can, attack, prevent, respond 
+ Topic 6: region, trade, studi, integr, econom 
+ Topic 7: offic, polic, research, develop, interview 
+ Topic 8: right, econom, human, democraci, countri 
+ Topic 9: organ, social, movement, network, activist 
+ Topic 10: secur, exploit, power, practic, within 
+ Topic 11: agenc, studi, system, case, develop 
+ Topic 12: polit, inform, communic, social, studi 
+ Topic 13: health, reform, care, inform, state 
+ Topic 14: polit, individu, good, citizen, peopl 
+ Topic 15: minor, polit, american, behavior, indian 
+ Topic 16: campaign, candid, elect, presidenti, examin 
+ Topic 17: polit, econom, transit, allianc, elit 
+ Topic 18: presid, issu, frame, presidenti, media 
+ Topic 19: civil, ethnic, violenc, state, conflict 
+ Topic 20: china, technolog, polici, countri, chines 
+ Topic 21: court, decis, judici, legal, model 
+ Topic 22: legisl, congress, member, hous, congression 
+ Topic 23: particip, citizen, delib, communiti, participatori 
+ Topic 24: vote, voter, elect, candid, model 
+ Topic 25: state, nation, argu, global, right 
+ Topic 26: state, econom, south, develop, korea 
+ Topic 27: parti, polit, elector, system, competit 
+ Topic 28: countri, corrupt, analysi, develop, studi 
+ Topic 29: polici, program, environment, chang, research 
+ Topic 30: polit, communiti, local, citi, govern 
+ Topic 31: regim, polit, leader, institut, opposit 
+ Topic 32: secur, transnat, intern, migrat, practic 
+ Topic 33: reform, land, economi, govern, state 
+ Topic 34: public, polici, opinion, crime, american 
+ Topic 35: polit, role, valu, american, play 
+ Topic 36: narrat, peopl, stori, term, cultur 
+ Topic 37: institut, polit, trust, democraci, level 
+ Topic 38: servic, data, board, studi, provis 
+ Topic 39: war, terror, theori, use, model 
+ Topic 40: polici, chang, power, outcom, govern 
+ Topic 41: state, studi, polit, research, use 
+ Topic 42: govern, local, institut, feder, develop 
+ Topic 43: polit, liber, action, capit, oblig 
+ Topic 44: polit, inform, citizen, behavior, survey 
+ Topic 45: elect, elector, partisan, candid, parti 
+ Topic 46: militari, innov, technolog, war, capabl 
+ Topic 47: immigr, polici, nation, respons, communiti 
+ Topic 48: represent, legisl, style, constitu, studi 
+ Topic 49: women, racial, black, gender, white 
+ Topic 50: mediat, theori, effect, disput, inform 
+ Topic 51: polit, theori, critic, new, dissert 
+ Topic 52: govern, tax, local, properti, state 
+ Topic 53: issu, media, studi, effect, opinion 
+ Topic 54: econom, market, labor, economi, union 
+ Topic 55: group, polici, interest, activ, lobbi 
+ Topic 56: state, welfar, health, polici, public 
+ Topic 57: conflict, intern, state, domest, polit 
+ Topic 58: democrat, liber, societi, democraci, freedom 
+ Topic 59: institut, polit, right, histor, state 
+ Topic 60: polici, govern, rate, bank, monetari 
+ Topic 61: branch, execut, institut, legisl, legislatur 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (15 seconds). 
+Completing Iteration 6 (approx. per word bound = -6.260, relative change = 1.485e-03) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (13 seconds). 
+Completing Iteration 7 (approx. per word bound = -6.253, relative change = 1.049e-03) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (12 seconds). 
+Completing Iteration 8 (approx. per word bound = -6.248, relative change = 7.718e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (11 seconds). 
+Completing Iteration 9 (approx. per word bound = -6.245, relative change = 5.972e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (11 seconds). 
+Completing Iteration 10 (approx. per word bound = -6.242, relative change = 4.565e-04) 
+Topic 1: environ, polit, select, recruit, parti 
+ Topic 2: constitut, thesi, canada, canadian, feder 
+ Topic 3: ident, latino, ethnic, polit, group 
+ Topic 4: polit, chapter, moral, human, concept 
+ Topic 5: use, can, attack, model, will 
+ Topic 6: region, integr, econom, trade, studi 
+ Topic 7: offic, polic, research, interview, school 
+ Topic 8: right, econom, human, democraci, level 
+ Topic 9: social, organ, movement, network, activist 
+ Topic 10: secur, power, exploit, constitut, within 
+ Topic 11: agenc, studi, develop, system, enforc 
+ Topic 12: polit, inform, communic, social, studi 
+ Topic 13: health, reform, care, law, inform 
+ Topic 14: individu, polit, good, peopl, citizen 
+ Topic 15: minor, polit, american, behavior, indian 
+ Topic 16: campaign, candid, elect, presidenti, voter 
+ Topic 17: econom, transit, polit, allianc, system 
+ Topic 18: presid, issu, frame, presidenti, media 
+ Topic 19: ethnic, civil, violenc, war, state 
+ Topic 20: china, technolog, chines, countri, polici 
+ Topic 21: court, decis, execut, judici, legal 
+ Topic 22: legisl, congress, member, hous, congression 
+ Topic 23: particip, citizen, delib, participatori, civic 
+ Topic 24: vote, voter, elect, model, effect 
+ Topic 25: state, nation, global, argu, justic 
+ Topic 26: state, econom, develop, south, africa 
+ Topic 27: parti, polit, elector, system, competit 
+ Topic 28: countri, corrupt, analysi, develop, level 
+ Topic 29: polici, program, environment, research, chang 
+ Topic 30: communiti, polit, local, citi, urban 
+ Topic 31: regim, polit, leader, opposit, rule 
+ Topic 32: secur, transnat, migrat, intern, border 
+ Topic 33: reform, economi, land, industri, govern 
+ Topic 34: public, polici, opinion, crime, american 
+ Topic 35: role, polit, valu, american, play 
+ Topic 36: narrat, peopl, stori, term, cultur 
+ Topic 37: institut, polit, democraci, trust, level 
+ Topic 38: servic, data, board, studi, provis 
+ Topic 39: war, terror, theori, use, terrorist 
+ Topic 40: polici, chang, power, outcom, govern 
+ Topic 41: state, studi, research, unit, factor 
+ Topic 42: govern, local, institut, feder, develop 
+ Topic 43: polit, liber, action, oblig, individu 
+ Topic 44: polit, inform, citizen, survey, behavior 
+ Topic 45: elect, elector, partisan, candid, district 
+ Topic 46: militari, innov, technolog, control, forc 
+ Topic 47: immigr, polici, nation, communiti, respons 
+ Topic 48: represent, legisl, constitu, style, studi 
+ Topic 49: women, gender, racial, black, white 
+ Topic 50: mediat, theori, inform, model, effect 
+ Topic 51: polit, theori, critic, new, dissert 
+ Topic 52: govern, tax, properti, local, cost 
+ Topic 53: media, issu, studi, effect, approv 
+ Topic 54: econom, market, labor, economi, global 
+ Topic 55: group, interest, polici, activ, issu 
+ Topic 56: welfar, state, health, polici, risk 
+ Topic 57: conflict, intern, domest, state, relat 
+ Topic 58: democrat, societi, liber, democraci, civil 
+ Topic 59: institut, polit, right, histor, norm 
+ Topic 60: polici, govern, bank, rate, foreign 
+ Topic 61: branch, execut, institut, legisl, legislatur 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (11 seconds). 
+Completing Iteration 11 (approx. per word bound = -6.239, relative change = 3.835e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (11 seconds). 
+Completing Iteration 12 (approx. per word bound = -6.238, relative change = 2.953e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (10 seconds). 
+Completing Iteration 13 (approx. per word bound = -6.236, relative change = 2.374e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (10 seconds). 
+Completing Iteration 14 (approx. per word bound = -6.235, relative change = 1.980e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (11 seconds). 
+Completing Iteration 15 (approx. per word bound = -6.234, relative change = 1.661e-04) 
+Topic 1: environ, polit, paper, select, recruit 
+ Topic 2: thesi, constitut, canada, canadian, feder 
+ Topic 3: ident, latino, ethnic, polit, group 
+ Topic 4: polit, moral, chapter, human, concept 
+ Topic 5: use, can, model, attack, measur 
+ Topic 6: region, econom, integr, trade, studi 
+ Topic 7: offic, polic, research, interview, school 
+ Topic 8: right, econom, human, democraci, level 
+ Topic 9: social, organ, movement, network, mobil 
+ Topic 10: power, constitut, secur, within, exploit 
+ Topic 11: agenc, studi, bureaucrat, develop, regul 
+ Topic 12: polit, inform, communic, social, studi 
+ Topic 13: reform, health, care, law, inform 
+ Topic 14: individu, polit, good, peopl, dissert 
+ Topic 15: minor, polit, behavior, american, indian 
+ Topic 16: campaign, candid, elect, voter, presidenti 
+ Topic 17: econom, transit, allianc, polit, system 
+ Topic 18: presid, presidenti, frame, issu, media 
+ Topic 19: ethnic, violenc, civil, conflict, war 
+ Topic 20: technolog, china, chines, countri, water 
+ Topic 21: court, decis, execut, judici, legal 
+ Topic 22: legisl, congress, member, hous, congression 
+ Topic 23: particip, citizen, delib, participatori, civic 
+ Topic 24: vote, voter, elect, model, effect 
+ Topic 25: nation, state, global, justic, argu 
+ Topic 26: state, develop, econom, south, africa 
+ Topic 27: parti, polit, elector, system, competit 
+ Topic 28: countri, corrupt, develop, analysi, level 
+ Topic 29: polici, program, environment, research, chang 
+ Topic 30: communiti, polit, local, citi, urban 
+ Topic 31: regim, leader, polit, rule, opposit 
+ Topic 32: secur, transnat, migrat, border, intern 
+ Topic 33: reform, economi, land, industri, govern 
+ Topic 34: public, opinion, polici, crime, american 
+ Topic 35: role, polit, studi, play, valu 
+ Topic 36: narrat, peopl, stori, term, ideolog 
+ Topic 37: institut, polit, democraci, trust, level 
+ Topic 38: servic, data, board, studi, provis 
+ Topic 39: war, terror, theori, use, model 
+ Topic 40: polici, chang, power, outcom, govern 
+ Topic 41: state, unit, studi, research, factor 
+ Topic 42: govern, local, feder, institut, develop 
+ Topic 43: polit, liber, action, oblig, theori 
+ Topic 44: polit, citizen, inform, survey, behavior 
+ Topic 45: elect, elector, partisan, candid, polar 
+ Topic 46: militari, innov, control, forc, technolog 
+ Topic 47: immigr, polici, nation, communiti, respons 
+ Topic 48: represent, constitu, legisl, style, repres 
+ Topic 49: women, gender, racial, black, white 
+ Topic 50: theori, mediat, inform, model, effect 
+ Topic 51: polit, theori, critic, new, dissert 
+ Topic 52: govern, tax, properti, local, cost 
+ Topic 53: media, issu, news, studi, effect 
+ Topic 54: market, econom, labor, economi, global 
+ Topic 55: group, interest, polici, activ, issu 
+ Topic 56: welfar, health, state, polici, risk 
+ Topic 57: conflict, intern, domest, state, relat 
+ Topic 58: democrat, societi, liber, democraci, civil 
+ Topic 59: institut, polit, histor, right, norm 
+ Topic 60: polici, govern, bank, foreign, invest 
+ Topic 61: execut, branch, legislatur, institut, legisl 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (11 seconds). 
+Completing Iteration 16 (approx. per word bound = -6.233, relative change = 1.417e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (11 seconds). 
+Completing Iteration 17 (approx. per word bound = -6.232, relative change = 1.181e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (12 seconds). 
+Completing Iteration 18 (approx. per word bound = -6.232, relative change = 1.044e-04) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (12 seconds). 
+Completing Iteration 19 (approx. per word bound = -6.231, relative change = 8.542e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (12 seconds). 
+Completing Iteration 20 (approx. per word bound = -6.231, relative change = 7.376e-05) 
+Topic 1: environ, polit, paper, select, recruit 
+ Topic 2: thesi, constitut, canada, canadian, feder 
+ Topic 3: ident, latino, ethnic, polit, group 
+ Topic 4: polit, moral, human, chapter, concept 
+ Topic 5: use, can, model, attack, measur 
+ Topic 6: region, european, integr, econom, trade 
+ Topic 7: offic, polic, research, interview, school 
+ Topic 8: right, econom, human, democraci, level 
+ Topic 9: social, organ, movement, network, mobil 
+ Topic 10: power, constitut, within, exploit, coordin 
+ Topic 11: agenc, bureaucrat, studi, regul, bureaucraci 
+ Topic 12: polit, inform, communic, social, studi 
+ Topic 13: reform, health, care, law, inform 
+ Topic 14: individu, polit, good, peopl, dissert 
+ Topic 15: minor, polit, behavior, american, indian 
+ Topic 16: campaign, candid, elect, voter, presidenti 
+ Topic 17: transit, econom, allianc, polit, system 
+ Topic 18: presid, presidenti, frame, issu, use 
+ Topic 19: ethnic, violenc, civil, conflict, war 
+ Topic 20: technolog, china, chines, countri, develop 
+ Topic 21: court, decis, execut, judici, legal 
+ Topic 22: legisl, congress, member, hous, congression 
+ Topic 23: particip, citizen, delib, participatori, engag 
+ Topic 24: vote, voter, elect, model, effect 
+ Topic 25: nation, state, global, justic, citizenship 
+ Topic 26: state, develop, econom, south, africa 
+ Topic 27: parti, polit, elector, system, competit 
+ Topic 28: countri, corrupt, develop, analysi, level 
+ Topic 29: polici, program, environment, research, chang 
+ Topic 30: communiti, polit, local, citi, urban 
+ Topic 31: regim, leader, polit, rule, opposit 
+ Topic 32: secur, transnat, migrat, border, dissert 
+ Topic 33: reform, economi, land, industri, sector 
+ Topic 34: public, opinion, polici, crime, american 
+ Topic 35: role, polit, studi, play, valu 
+ Topic 36: narrat, peopl, stori, term, ideolog 
+ Topic 37: institut, polit, trust, democraci, level 
+ Topic 38: servic, data, board, studi, provis 
+ Topic 39: war, theori, terror, use, model 
+ Topic 40: polici, chang, outcom, process, govern 
+ Topic 41: state, unit, research, studi, adopt 
+ Topic 42: govern, local, feder, develop, plan 
+ Topic 43: polit, liber, action, oblig, theori 
+ Topic 44: polit, citizen, inform, survey, attitud 
+ Topic 45: elect, elector, partisan, candid, polar 
+ Topic 46: militari, innov, control, forc, defens 
+ Topic 47: immigr, polici, migrant, respons, communiti 
+ Topic 48: represent, constitu, repres, style, legisl 
+ Topic 49: women, gender, racial, black, white 
+ Topic 50: theori, mediat, inform, model, cost 
+ Topic 51: polit, theori, critic, new, dissert 
+ Topic 52: govern, tax, properti, local, cost 
+ Topic 53: media, issu, news, studi, effect 
+ Topic 54: market, econom, labor, economi, global 
+ Topic 55: group, interest, polici, activ, issu 
+ Topic 56: welfar, health, state, polici, risk 
+ Topic 57: intern, conflict, domest, relat, state 
+ Topic 58: democrat, societi, democraci, civil, liber 
+ Topic 59: institut, polit, histor, right, norm 
+ Topic 60: polici, govern, bank, foreign, invest 
+ Topic 61: execut, legislatur, branch, legisl, institut 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (13 seconds). 
+Completing Iteration 21 (approx. per word bound = -6.230, relative change = 6.253e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (14 seconds). 
+Completing Iteration 22 (approx. per word bound = -6.230, relative change = 5.271e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (15 seconds). 
+Completing Iteration 23 (approx. per word bound = -6.230, relative change = 4.430e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (16 seconds). 
+Completing Iteration 24 (approx. per word bound = -6.230, relative change = 2.089e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (16 seconds). 
+Completing Iteration 25 (approx. per word bound = -6.229, relative change = 6.066e-05) 
+Topic 1: environ, paper, polit, select, recruit 
+ Topic 2: thesi, canada, constitut, canadian, feder 
+ Topic 3: ident, latino, ethnic, polit, group 
+ Topic 4: polit, moral, human, chapter, concept 
+ Topic 5: use, model, can, attack, measur 
+ Topic 6: region, european, integr, econom, trade 
+ Topic 7: offic, polic, research, interview, studi 
+ Topic 8: right, econom, human, democraci, incom 
+ Topic 9: social, organ, movement, network, mobil 
+ Topic 10: power, constitut, within, exploit, coordin 
+ Topic 11: agenc, bureaucrat, studi, regul, bureaucraci 
+ Topic 12: polit, inform, communic, social, studi 
+ Topic 13: reform, health, care, law, inform 
+ Topic 14: individu, polit, good, peopl, dissert 
+ Topic 15: minor, polit, behavior, american, indian 
+ Topic 16: campaign, candid, elect, voter, presidenti 
+ Topic 17: transit, econom, allianc, polit, system 
+ Topic 18: presid, presidenti, frame, issu, use 
+ Topic 19: ethnic, violenc, civil, conflict, war 
+ Topic 20: technolog, china, chines, develop, countri 
+ Topic 21: court, decis, judici, execut, legal 
+ Topic 22: legisl, congress, hous, member, congression 
+ Topic 23: particip, citizen, delib, participatori, engag 
+ Topic 24: vote, voter, elect, model, effect 
+ Topic 25: nation, state, global, justic, citizenship 
+ Topic 26: state, econom, develop, south, africa 
+ Topic 27: parti, polit, elector, system, competit 
+ Topic 28: countri, corrupt, level, develop, analysi 
+ Topic 29: polici, program, environment, research, chang 
+ Topic 30: communiti, polit, local, citi, urban 
+ Topic 31: regim, leader, rule, polit, opposit 
+ Topic 32: secur, transnat, migrat, border, project 
+ Topic 33: reform, economi, land, industri, sector 
+ Topic 34: public, opinion, polici, crime, american 
+ Topic 35: role, studi, polit, play, valu 
+ Topic 36: narrat, stori, peopl, ideolog, term 
+ Topic 37: institut, polit, trust, democraci, govern 
+ Topic 38: servic, board, data, studi, provis 
+ Topic 39: war, theori, terror, use, model 
+ Topic 40: polici, chang, outcom, process, govern 
+ Topic 41: state, unit, research, adopt, studi 
+ Topic 42: govern, local, develop, feder, plan 
+ Topic 43: polit, liber, action, theori, oblig 
+ Topic 44: polit, citizen, inform, survey, attitud 
+ Topic 45: elect, elector, partisan, polar, candid 
+ Topic 46: militari, innov, control, forc, defens 
+ Topic 47: immigr, polici, migrant, respons, american 
+ Topic 48: represent, constitu, repres, style, studi 
+ Topic 49: women, gender, racial, black, white 
+ Topic 50: theori, inform, mediat, model, cost 
+ Topic 51: polit, theori, critic, new, dissert 
+ Topic 52: govern, tax, properti, cost, econom 
+ Topic 53: media, issu, news, studi, effect 
+ Topic 54: econom, market, labor, economi, global 
+ Topic 55: group, interest, polici, activ, lobbi 
+ Topic 56: welfar, health, polici, risk, social 
+ Topic 57: intern, conflict, domest, relat, peac 
+ Topic 58: democrat, societi, democraci, civil, freedom 
+ Topic 59: institut, polit, histor, right, norm 
+ Topic 60: polici, govern, foreign, bank, invest 
+ Topic 61: execut, legislatur, branch, legisl, institut 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (17 seconds). 
+Completing Iteration 26 (approx. per word bound = -6.229, relative change = 3.247e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (17 seconds). 
+Completing Iteration 27 (approx. per word bound = -6.229, relative change = 2.976e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (18 seconds). 
+Completing Iteration 28 (approx. per word bound = -6.229, relative change = 2.498e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (18 seconds). 
+Completing Iteration 29 (approx. per word bound = -6.228, relative change = 2.176e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (19 seconds). 
+Completing Iteration 30 (approx. per word bound = -6.228, relative change = 2.026e-05) 
+Topic 1: environ, paper, polit, select, appeal 
+ Topic 2: thesi, canada, canadian, constitut, feder 
+ Topic 3: ident, latino, ethnic, polit, group 
+ Topic 4: polit, moral, human, concept, chapter 
+ Topic 5: use, model, can, attack, measur 
+ Topic 6: region, european, integr, econom, trade 
+ Topic 7: offic, polic, research, interview, includ 
+ Topic 8: right, econom, human, democraci, incom 
+ Topic 9: social, organ, movement, network, mobil 
+ Topic 10: power, within, constitut, exploit, coordin 
+ Topic 11: agenc, bureaucrat, regul, bureaucraci, administr 
+ Topic 12: polit, communic, inform, social, studi 
+ Topic 13: reform, health, care, law, inform 
+ Topic 14: individu, polit, peopl, good, dissert 
+ Topic 15: minor, polit, behavior, american, indian 
+ Topic 16: campaign, candid, elect, voter, presidenti 
+ Topic 17: transit, econom, allianc, polit, system 
+ Topic 18: presid, presidenti, frame, issu, use 
+ Topic 19: ethnic, violenc, civil, conflict, war 
+ Topic 20: technolog, china, chines, develop, countri 
+ Topic 21: court, judici, decis, execut, legal 
+ Topic 22: legisl, congress, hous, congression, member 
+ Topic 23: particip, citizen, delib, participatori, engag 
+ Topic 24: vote, voter, elect, model, effect 
+ Topic 25: nation, state, global, citizenship, justic 
+ Topic 26: state, econom, develop, south, africa 
+ Topic 27: parti, polit, elector, system, competit 
+ Topic 28: countri, corrupt, level, develop, analysi 
+ Topic 29: polici, program, environment, research, problem 
+ Topic 30: communiti, polit, local, citi, urban 
+ Topic 31: regim, leader, rule, polit, opposit 
+ Topic 32: secur, transnat, migrat, border, project 
+ Topic 33: reform, economi, land, industri, sector 
+ Topic 34: public, opinion, polici, crime, support 
+ Topic 35: role, studi, polit, play, valu 
+ Topic 36: narrat, stori, peopl, ideolog, term 
+ Topic 37: institut, polit, trust, govern, level 
+ Topic 38: servic, board, studi, data, use 
+ Topic 39: war, theori, terror, use, model 
+ Topic 40: polici, chang, process, outcom, coalit 
+ Topic 41: state, unit, adopt, research, studi 
+ Topic 42: govern, local, develop, feder, plan 
+ Topic 43: polit, liber, action, theori, oblig 
+ Topic 44: polit, citizen, inform, survey, attitud 
+ Topic 45: elect, elector, partisan, polar, candid 
+ Topic 46: militari, innov, forc, control, capabl 
+ Topic 47: immigr, migrant, polici, american, respons 
+ Topic 48: represent, constitu, repres, style, member 
+ Topic 49: women, gender, racial, black, white 
+ Topic 50: inform, theori, mediat, model, cost 
+ Topic 51: polit, theori, critic, new, dissert 
+ Topic 52: govern, tax, properti, cost, econom 
+ Topic 53: media, issu, news, effect, studi 
+ Topic 54: econom, market, labor, economi, global 
+ Topic 55: group, interest, polici, activ, issu 
+ Topic 56: welfar, health, polici, social, fund 
+ Topic 57: intern, conflict, domest, relat, peac 
+ Topic 58: democrat, societi, democraci, civil, freedom 
+ Topic 59: institut, polit, histor, right, norm 
+ Topic 60: foreign, polici, govern, invest, bank 
+ Topic 61: legislatur, execut, legisl, branch, institut 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (20 seconds). 
+Completing Iteration 31 (approx. per word bound = -6.228, relative change = 2.009e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (20 seconds). 
+Completing Iteration 32 (approx. per word bound = -6.228, relative change = 2.110e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (20 seconds). 
+Completing Iteration 33 (approx. per word bound = -6.228, relative change = 2.435e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (20 seconds). 
+Completing Iteration 34 (approx. per word bound = -6.228, relative change = 3.068e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (21 seconds). 
+Completing Iteration 35 (approx. per word bound = -6.228, relative change = 3.535e-05) 
+Topic 1: environ, paper, polit, select, appeal 
+ Topic 2: thesi, canada, canadian, constitut, feder 
+ Topic 3: ident, latino, ethnic, polit, group 
+ Topic 4: polit, moral, human, concept, chapter 
+ Topic 5: use, model, can, attack, measur 
+ Topic 6: region, european, integr, trade, latin 
+ Topic 7: offic, polic, research, interview, includ 
+ Topic 8: right, econom, human, incom, growth 
+ Topic 9: social, organ, movement, network, mobil 
+ Topic 10: power, within, constitut, exploit, global 
+ Topic 11: agenc, bureaucrat, regul, administr, control 
+ Topic 12: polit, inform, communic, social, studi 
+ Topic 13: reform, health, care, law, inform 
+ Topic 14: individu, polit, peopl, good, dissert 
+ Topic 15: minor, polit, behavior, american, indian 
+ Topic 16: candid, campaign, elect, voter, presidenti 
+ Topic 17: transit, econom, allianc, elit, polit 
+ Topic 18: presid, presidenti, frame, issu, agenda 
+ Topic 19: ethnic, violenc, civil, conflict, war 
+ Topic 20: technolog, china, chines, develop, water 
+ Topic 21: court, judici, decis, legal, execut 
+ Topic 22: legisl, congress, hous, congression, member 
+ Topic 23: particip, citizen, delib, engag, participatori 
+ Topic 24: vote, voter, elect, model, effect 
+ Topic 25: nation, state, global, citizenship, justic 
+ Topic 26: state, econom, develop, south, africa 
+ Topic 27: parti, polit, elector, system, competit 
+ Topic 28: countri, corrupt, level, develop, analysi 
+ Topic 29: polici, program, environment, research, problem 
+ Topic 30: communiti, local, polit, citi, urban 
+ Topic 31: regim, leader, rule, polit, opposit 
+ Topic 32: secur, transnat, migrat, border, project 
+ Topic 33: reform, land, economi, sector, industri 
+ Topic 34: public, opinion, polici, crime, support 
+ Topic 35: role, studi, polit, play, valu 
+ Topic 36: narrat, stori, ideolog, peopl, practic 
+ Topic 37: institut, polit, trust, govern, level 
+ Topic 38: servic, board, studi, data, use 
+ Topic 39: war, theori, terror, use, terrorist 
+ Topic 40: polici, chang, process, outcom, coalit 
+ Topic 41: state, unit, adopt, research, studi 
+ Topic 42: govern, local, develop, feder, plan 
+ Topic 43: polit, liber, action, theori, oblig 
+ Topic 44: polit, citizen, inform, survey, attitud 
+ Topic 45: elect, elector, partisan, polar, candid 
+ Topic 46: militari, innov, forc, control, capabl 
+ Topic 47: immigr, migrant, american, respons, communiti 
+ Topic 48: represent, constitu, repres, member, style 
+ Topic 49: women, gender, racial, black, white 
+ Topic 50: inform, theori, mediat, model, cost 
+ Topic 51: polit, theori, new, critic, dissert 
+ Topic 52: govern, tax, properti, cost, econom 
+ Topic 53: media, issu, news, effect, approv 
+ Topic 54: econom, market, labor, economi, global 
+ Topic 55: group, interest, activ, polici, lobbi 
+ Topic 56: welfar, health, social, fund, polici 
+ Topic 57: intern, conflict, domest, relat, peac 
+ Topic 58: democrat, democraci, societi, civil, freedom 
+ Topic 59: polit, histor, institut, norm, right 
+ Topic 60: foreign, govern, polici, invest, bank 
+ Topic 61: execut, legislatur, legisl, branch, govern 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (21 seconds). 
+Completing Iteration 36 (approx. per word bound = -6.227, relative change = 4.049e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (21 seconds). 
+Completing Iteration 37 (approx. per word bound = -6.227, relative change = 4.399e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (21 seconds). 
+Completing Iteration 38 (approx. per word bound = -6.227, relative change = 4.155e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (22 seconds). 
+Completing Iteration 39 (approx. per word bound = -6.227, relative change = 3.490e-05) 
+......................................................................................................
+Completed E-Step (2 seconds). 
+Completed M-Step (22 seconds). 
+Model Converged 
+> 
