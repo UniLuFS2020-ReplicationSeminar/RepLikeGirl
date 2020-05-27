@@ -47,7 +47,7 @@ While the research paper was published under two authors, the replication data h
     * School effects control (i.e., a probable confounder between topic and gender), omitted from schools with fewer than three filed dissertations. 
     * Dissertations without abstracts: removed two dissertations  
 
-*NOTE:* p664 “We used authors’ first (given) names to probabilistically predict their gender (Sumner 2018).5” look at the footnote. They checked with hand coded to review it didn’t change much. but excluded from study(note6). 
+*NOTE:* p664 “We used authors’ first (given) names to probabilistically predict their gender (Sumner 2018).5” look at the footnote. They checked via hand code to review, it didn’t change much. but excluded from study(note6). 
 
 *Can I use Data Mining to identify the authors gender?* 
 
@@ -137,14 +137,20 @@ I had accepted compiling from CRAN sources, but had an error with RcppArmadillo 
 
 ```{r}
 #install.packages(c("SnowballC", "stm", "tm"))
-#library(stringr)  
-#library(stm)  
-#library(SnowballC) 
-#library(tm)
+library(stringr)  
+library(stm)  
+library(SnowballC) 
 
-#library(tidyverse) was not ran ???
+library(tm)
+
+#install.packages(c("Rtsne", "rsvd", "geometry"))
+# message: also installing the dependencies ‘abind’, ‘magic’, ‘lpSolve’, ‘linprog’, ‘RcppProgress’
+library(Rtsne)
+library(rsvd)
+library(geometry)
+
 ```
-
+#library(tidyverse) was not run ???
 
 __*Code Line 7*__  
 Reading the data was problematic, so I decided to remove strings as factors from the original line until the path problem is solved.  The path with here() gave me trouble, I found an explanation in @JenRichmondPhD twitter where the recomendation to use the code including all data path's names but it wouldn't knit 
@@ -158,21 +164,14 @@ Reading the data was problematic, so I decided to remove strings as factors from
 I finally cleaned sessions, restarted Rstudio and it worked.
 
 ```{r}
-diss_test <- read.csv(here("data", "dissertation-data-clean.csv"))
-rm(diss_test)
+#diss_test <- read.csv(here("data", "dissertation-data-clean.csv"))
+#rm(diss_test)
 ```
 
 Reading the csv file to create a data set is finally working, now that I added "data", so I can return the original code line of stringAsFactors = F. I assume the researchers were not planning to change the type of strings they were to use in the data frame. I noted that the here function must be closed after path and files, not after stringsAsFactors. 
 
 ```{r}
 diss <- read.csv(here("data", "dissertation-data-clean.csv"), stringsAsFactors=F)
-```
-
-Created a smaller table with only interestic columns so I can relate faster to the data.
-
-```{r}
-#Not worked SKIP, need dplyr 
-#diss_short <- diss %>% select( 1 : 2 )  
 ```
 
 RANDOM for memory
@@ -212,8 +211,7 @@ hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light gree
      
 __*Code Line 15*__
 
-The data was delivered cleaned and with pre-calculated probability for gender estimation. I presume the value of useNAwas set to always in case data was searched for advisor, as there are more than 1 advisors for some dissertations, the possibility of finding NA is high.
-
+The data was delivered cleaned and with pre-calculated probability for gender estimation. I presume the value of use NA was set to always in case data was searched for advisor, as there are more than 1 advisors for some dissertations, the possibility of finding NA is high.
 
 Tabulating the data for the variable gender and its frequency. Cross tabulated for gender inference between high and low probabilities of the author being a woman (value 1).
 Dichotomous = due to the possibility of genderless names, such as Shu.
@@ -261,17 +259,15 @@ sum(table(diss$woman.strict,useNA="always"))
 # this addition is 1808, less 176 is still higher than the 1543. percentages are ok though. #what to do?
 x = 36.4+53.8+9.7 
 x
-print(" percentage of published numbers does amount to almost 100%")
-
 ```
-
+The final value of all threee distributed dissertations is 99.9%
 
 
 
 
 __*Code Line 25 *__
 
-Informative plot based on the numbers above, not on the replicated/published paper.
+Apparently the paper had images that were published separately from the paper. This is another informative plot based on the numbers above, which I presume served the researchers to visually verify their assumptions. However, this graph obscures the 30% difference between male and female published dissertations.  
 
 ```{r}
 # Figure A2 in Supplementary Online Appendices 
@@ -284,7 +280,7 @@ barplot(t(table(diss$year,diss$woman.strict)),legend.text=c("Man","Woman"),
 __*Code Line 30 *__
 The purpose of a structural model is to find the most recurrent words and its pairings in a text. It is not a matter of just happening a lot, it will identify if the words happen in similar contexts, formally known as topic prevalence. 
 
-For this purpose, each dissertation is one row in the csv file, and there are various covariates, hence I assume this is a quanteda dfm  object (document-feature  matrix). 
+For this purpose, each dissertation is one row in the csv file and there are numerous covariates, hence I incorrectly assumed this is a quanteda dfm object (document-feature  matrix). However, stm documentation clarified that when a "document is a sparse matrix or quanteda dfm object, then vocab should not *(and must not)* be supplied" because it "is contained already inside the columnnames of the matrix"(CRAN docu, p59).
 
 __Step 1__ To prepare for STM, simple text must be transformed to fit the function's format. Function textProcessor is used here, "Function that takes in a vector of raw texts (in a variety of languages) and performs basic operations.This  function  is  essentially  a  wrapper __tm__ package  where  various  user  specified options can be selected." (CRAN package description).
 
@@ -301,7 +297,7 @@ So I added it on to the chunk above (ca. line 143) and NLP got loaded as well. R
 
 ```{r}
 # 1. Setting up the STM
-#tx <- textProcessor(diss$Abstract,meta=diss)
+tx <- textProcessor(diss$Abstract,meta=diss)
 ```
 *Output:*  
 Building corpus... 
@@ -323,27 +319,32 @@ By looking at the contents of documents (the data obtained from variable *"Abstr
 
 ```{r}
 # 2. Setting up the STM
-#out <- prepDocuments(tx$documents, tx$vocab, tx$meta, lower.thresh=15)
+out <- prepDocuments(tx$documents, tx$vocab, tx$meta, lower.thresh=15)
 ```
 *Output:*  
 Removing 10914 of 12598 terms (25968 of 167892 tokens) due to frequency 
 Your corpus now has 1543 documents, 1684 terms and 141924 tokens.
 
-__Step 3__ Assigned the lists of the 1543 dissertations combination of words to object docs.
+"The stm package represents a text corpus in three parts: a documents list containing word indices x (St3) and their associated counts,5 a vocab  (St4) character vector containing the words associated with the word indices, and a metadata matrix containing document covariates." (St5) (stm docu)
+
+__Step 3__ Assigned the lists of the 1543 dissertations combination of words to object docs. 
+“Each document is represented as an integer matrix with two rows, and columns equal  to  the  number  of  unique  vocabulary  words  in  the  document.   The  first row contains the 1-indexed vocabulary entry and the second row contains the number of times that term appears” (CRAN p59) (https://cran.r-project.org/web/packages/stm/stm.pdf)
 
 ```{r}
 # 3. Setting up the STM
-#docs <- out$documents
+docs <- out$documents
 ```
-list's contents: ![](../output/stm3-docs.png)
-
+View of *docs* matrix: ![](../output/stm3-docs.png)
+“Each document is represented as an integer matrix with two rows, and columns equal  to  the  number  of  unique  vocabulary  words  in  the  document.   The  first row contains the 1-indexed vocabulary entry and the second row contains the number of times that term appears” (CRAN p59) (https://cran.r-project.org/web/packages/stm/stm.pdf)
 
 __Step4__ Assigned the words of the created vocabulary to a characer vector.
 
 ```{r}
 # 4. Setting up the STM
-#vocab <- out$vocab
-#head(vocab)
+vocab <- out$vocab
+
+# Mona wants to see 
+head(vocab)
 ```
 *Output:*  
 [1] "-call"    "-depth"   "abil"     "abl"      "absenc"   "abstract"
@@ -353,56 +354,171 @@ __Step5__ created data element with the selected document metadata, that is, ver
 
 ```{r}
 # 5. Setting up the STM
-#meta <-out$meta
+meta <-out$meta
 ```
+
+
+
+### This runs if its run all at once. Not separately chunk by chunk. Maybe because I knit at each chunk?
+
 
 ---
 KEEP?
 
-__From the Vignette, function usage__  
+__From the Vignette, function usage__   
 
 stm(documents, vocab, K, prevalence = NULL, content = NULL, data = NULL, init.type = c("Spectral", "LDA", "Random", "Custom"), seed = NULL, max.em.its = 500, emtol = 1e-05, verbose = TRUE, reportevery = 5, LDAbeta = TRUE, interactions = TRUE, ngroups = 1, model = NULL, gamma.prior = c("Pooled", "L1"), sigma.prior = 0, kappa.prior = c("L1", "Jeffreys"),control = list())
 
-__Data__ 
+__Data__   
 an optional data frame containing the prevalence and/or content covariates.  If unspecified the variables are taken from the active environment
 KEEP?
 
 ---
-
+__*Code Line 38 *__  
 ## The actual STM building
 
+Considering that this code would run for an unspecified amount of time, I started it and looked for the way that I could check it was running, found in Stackoverflow (https://stackoverflow.com/questions/42888461/how-do-you-know-rstudio-is-running) that besides the chunk turning a red semaphore, I could look at the activity monitor.  
 
 ```{r}
 # # This part is how we determined the number of topics. I suggest not running it unless you're quite curious,
 # # as it takes forever. It'll also yield a slightly different number every time, just by the nature of simulation.
 # K.store <- NULL
-# for(i in 1:100){
-# K <- 0 #0
-# fit <- stm(out$documents, out$vocab, K =K,
-#                       prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 5,
-#                       data = meta, init.type = "Spectral")
-# K.store <- c(K.store,nrow(labelTopics(fit)$frex))
-# 
-# }
-# par(mar=c(4.1,4.1,4.1,1.1),mgp=c(2.1,.5,.5))
-# hist(K.store,main="Discovered Topics",col="gray",xlab="number of topics",breaks=seq(min(K.store)-.5,max(K.store)+.5,1))
+#  for(i in 1:100){
+#  K <- 0 #0
+#  fit <- stm(out$documents, out$vocab, K =K,
+#                        prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 5,
+#                        data = meta, init.type = "Spectral")
+#  K.store <- c(K.store,nrow(labelTopics(fit)$frex))
+#  
+#  }
+#  par(mar=c(4.1,4.1,4.1,1.1),mgp=c(2.1,.5,.5))
+#
+# hist(K.store,main="Discovered Topics",col="gray",xlab="number of #topics",breaks=seq(min(K.store)-.5,max(K.store)+.5,1))
 
 ```
+*Output ERROR*  
+Error in tsneAnchor(Q, verbose = verbose, init.dims = settings$init$tSNE_init.dims, : Please install the Rtsne, rsvd and geometry packages to use this setting.
+*Error Traceback*
+5.stop("Please install the Rtsne, rsvd and geometry packages to use this setting.")
+4.tsneAnchor(Q, verbose = verbose, init.dims = settings$init$tSNE_init.dims, perplexity = settings$init$tSNE_perplexity)
+3.stm.init(documents, settings)
+2.stm.control(documents, vocab, settings, model)
+1.stm(out$documents, out$vocab, K = K, prevalence = ~woman.strict + as.factor(School) + s(year), max.em.its = 5, data = meta, init.type = "Spectral")
+
+After overcoming the above mentioned missing libraries, I ran this to see what it would do and how long is
+"forever"; in my computer it translated to 5 days equal to 4 min per 4 iterations for each of the 61 topics. 
+I cancelled the process and asked my husband if he had a more powerful computer which he doesn't, so I went on.
 
 
 
+__*Code Line 53 *__  
+Created an object which estimated the amount of abstracts published by women (in this case woman.loose and woman.strict resulted in the same number), if the school had more than three publications.
 
-
-# Estimation
-topics and prevalence from abstracts as a function of binary gender, controlling for school and year
 
 ```{r}
 # Step 1: Estimate topics and prevalence from abstracts as a function of binary gender, 
 # controlling for school and year
-#K <- 61
-#fit <- stm(out$documents, out$vocab, K =K,
-#           prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 100,
-#           data = meta, init.type = "Spectral")
+K <- 61
+fit <- stm(out$documents, out$vocab, K =K,
+           prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 100,
+           data = meta, init.type = "Spectral")
+```
+
+__*Code Line 59 *__  
+This doesn't run because the file was not provided. So I created file *Rep_frex-8-24.csv* out of the 
+csv file *output-for-figure* which is meant to provide for the Figure 1 plot, but hopefully also supplied the necessary information since *shorttopic* contains the same information that the required *label* entry in the code (inference following the logic of the paper's research design and the next lines of code).
+
+```{r}
+#Monica inserted code to make sure that fit contains the same topics as file output-for-figure.csv: Yes.
+summary(fit)
+fit_frex <- summary(fit)$frex
+```
+
+Re-created the file manually in csv by extracting the first two columns from *output-for-figure.csv* and 
+renaming it to *Rep_frex-8-24.csv* 
+Ran the code apparently without incidents
+```{r}
+# These are the labels we assigned to the topics on the basis of the frex (Frequent-Exclusive) words from the model.
+# The topics themselves are just our shorthand, and people can interpret the topics any way they'd like (within reason).
+# labeled.topics <- read.csv("frex-8-24.csv",stringsAsFactors=F)
+labeled.topics <- read.csv(here("data", "Rep_frex-8-24.csv"), stringsAsFactors=F)
+labeled.topics <- labeled.topics$label
+View(labeled.topics)
+```
+
+__*Code Line 64 *__  
+
+```{r}
+# # If you rerun the model, check to make sure the order still lines up -- it should, but if it doesn't, need to reorder
+# summary(fit)$frex==labeled.topics[,2:8]s
+
+frex <- apply(summary(fit)$frex,1,paste0,collapse=",")
+
+```
+
+
+__*Code Line 70 *__   
+The following 
+
+
+"Women are not equally distributed across the subfields. That said, the classifications of
+subfields also obscure a substantial amount of potential heterogeneity in research interests 
+as a result of aggregation and the choice of categories."
+
+*formula*  "A formula for the regression. It should have an integer or vector of numbers on the left-hand side and an equation with covariates on the right hand side. Details" ... "the model 
+2:4 ~ var1 + s(var2)would indicate that we want to run three regressions on Topics 2, 3 and 4 with predictor variables *var1* and a b-spline transformed *var2*." (CRAN)
+
+
+```{r}
+# Runs a series of linear regressions.
+#prep <- estimateEffect(1:length(subfields) ~ woman.strict+as.factor(School)+s(year), fit,
+prep <- estimateEffect(1:length(61) ~ woman.strict+as.factor(School)+s(year), fit,
+                       meta = out$meta, uncertainty = "Global")
+```
+tried 0:1 Error in estimateEffect(0:length(1) ~ woman.strict + as.factor(School) + : Topics specified as response in formula must be a set of positive integers equal to or less than the number of topics in the model.
+
+
+__*Code Line 74 *__   
+
+```{r}
+# Extracts the regression tables.
+tabs <- summary(prep)$tables
+
+# Extracts the coefficient for "woman" from each regression table.
+sig <- data.frame()
+for(i in 1:length(summary(prep)$tables)){
+    sig <- rbind(sig,data.frame(topic=frex[i],shorttopic=labeled.topics[i],t(tabs[[i]][2,])))
+
+    }
+
+names(sig) <- c("topic","shorttopic","coefficient","stderr","t","p")
+sig <- sig[order(sig$coefficient),]
+```
+
+
+
+```{r}
+# Indicates whether the coefficient is positive and significant or negative and significant
+# (A relic of when we were basing the color on the significance for ease of viewing.)
+sig$positive <- ifelse(sig$coefficient>0 & sig$p<=.05,1,0)
+sig$negative <- ifelse(sig$coefficient<0 & sig$p<=.05,1,0)
+```
+
+
+```{r}
+# Plot
+par(mar=c(3,16,2,1))
+plot(sig$coefficient,c(1:length(sig$coefficient)),yaxt="n",pch=16,xlab="more likely among men                           more likely among women",ylab="",
+     main="Gendered Topic Prevalences",xlim=c(-.02,.02),bty="n",xaxt="n",col=col,type="n")
+segments(y0=c(1:K),x0=-.03,x1=.02,lty=3,col="gray")
+points(sig$coefficient,c(1:length(sig$coefficient)),pch=16)
+axis(1,at=c(-0.015,0,0.015),c("more prevalent among men","equal","more prevalent among women"))
+segments(x0=sig$coefficient-1.96*sig$stderr,x1=sig$coefficient+1.96*sig$stderr,
+         y0=c(1:length(sig$coefficient)))
+segments(y0=0,y1=length(sig$coefficient),x0=0,lty=2)
+axis(2,at=c(1:length(sig$coefficient)),sig$shorttopic,las=2,cex.axis=.8)
+
+# end of file
 ```
 
 
