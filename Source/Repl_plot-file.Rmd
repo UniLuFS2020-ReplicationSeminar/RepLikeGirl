@@ -12,17 +12,30 @@ knitr::opts_chunk$set(echo = TRUE)
 ## 
 ```{r}
 #setwd("D:/Dropbox/Gendered Research Agendas/")
-#install.packages("here") 
+
+#install.packages(c("here", "remotes"))
+#remotes::install_github("benmarwick/wordcountaddin")
+
 library(here)
 here::here("data")
+
 #sig <- read.csv("output-for-figure.csv")
 sig <- read.csv(here("data", "output-for-figure.csv"))
 ```
 
+```{r wordcount}
+#wordcountaddin::word_count("source/Repl_plot-file.Rmd")
+wordcountaddin::word_count((here("source", "Repl_plot-file.Rmd")))
 
-```{r Fig1, fig.width = 12, fig.height = 9}
+```
+
+
+```{r onlyFigure1, fig.width = 12, fig.height = 9}
 #windows(width=12,height=12) # I think this only works on PCs.
 #MP commented as it only works for PC, instead changed size in header of chunk or the graph displays incomplete in html.
+
+# 1. Open jpeg file
+jpeg(here("output", "onlyFigure1.jpg"))
 
 #MP changed segments (background) color to blue for contrast
 par(mar=c(3,16,2,1))
@@ -52,5 +65,3 @@ that states this was a bug in lattice that should have been fixed. I loaded #lat
 nor character", at least in a zen kind of way). I presume you are
 somehow protecting 'col' from becoming a factor, and that does not
 translate to 'fill'." 
-
-This happens directly in the function ecexution (binaries) and seems to be ignored by most people executing and posting their online plots.

@@ -5,6 +5,13 @@ author: "Monica Perez Contreras on Key,Ellen (2019)"
 date: "5/16/2020"
 output: html_document
 ---
+```{r word count}
+#install.packages(c("here", "remotes"))
+#remotes::install_github("benmarwick/wordcountaddin")
+
+#wordcountaddin::word_count("source/Repl_plot-file.Rmd")
+wordcountaddin::word_count((here("source", "Repl_ResearchLikeGirl.Rmd")))
+```
 
 
 ## Introduction
@@ -87,8 +94,6 @@ __B.__ a group of topics identified by groupings of words
 *https://www.cambridge.org/core/journals/ps-political-science-and-politics/article/you-research-like-a-girl-gendered-research-agendas-and-their-implications/6017F061B759D870183FC6D8A71C1DCF *
 
 ----
-
-# HERE I GO
 ## Replication preparation
 
 Once  I was ready to work with the code and to facilitate replicability, I opened a project called RepLikeGirl, where tidy structures and ["Good Enough Practices"]( http://swcarpentry.github.io/good-enough-practices-in-scientific-computing/.) are taken into account. This project is linked to GitHub ADDLINK
@@ -119,8 +124,8 @@ set to TRUE. However, I do not want my tests printed.
 
 SETUP EVAL FALSE to be able to check
 
-```{r setup, include = TRUE}
-knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, eval = TRUE)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) #, eval = TRUE)
 ```
 
 __*Code Line 1*__  
@@ -156,9 +161,9 @@ library(rsvd)
 library(geometry)
 
 ```
-#library(tidyverse) was not run ???
+#library(tidyverse) was not run
 
-__*Code Line 7*__  
+__*Line 7*__  
 Reading the data was problematic, so I decided to remove strings as factors from the original line until the path problem is solved.  The path with here() gave me trouble, I found an explanation in @JenRichmondPhD twitter where the recomendation to use the code including all data path's names but it wouldn't knit 
 
 \> data <- read_csv(here("data", "dissertation-data-clean.csv"))  
@@ -176,12 +181,13 @@ I finally cleaned sessions, restarted Rstudio and it worked.
 
 Reading the csv file to create a data set is finally working, now that I added "data", so I can return the original code line of stringAsFactors = F. I assume the researchers were not planning to change the type of strings they were to use in the data frame. I noted that the here function must be closed after path and files, not after stringsAsFactors. 
 
+__*Line 8*__ 
 ```{r}
 diss <- read.csv(here("data", "dissertation-data-clean.csv"), stringsAsFactors=F)
 ```
 
 RANDOM for memory
-```{r}
+```{r, eval = FALSE}
 ncol(diss)
 dim(diss)
 s <- summary(diss)
@@ -189,10 +195,10 @@ diss_structure <- names(diss)
 diss_head <- head(diss)
 ```
 
-__*Code Line 10*__  
+__*Line 10*__  
 This histogram was not printed in the research paper, but it's included in the replication data. Changed 
 col="gray" to "light blue"
-breaks=seq, kept number of bars  since it makes no difference to calendar years
+breaks=seq, kept number of bars  since calendar years prints until 2014 which is congfusing
 
 Consider using ggplot for this, then use geom_histogram(binwidth=your bin width) –
 https://stackoverflow.com/questions/29693102/how-to-control-plot-height-size-in-interactive-rmarkdown-with-shiny
@@ -275,7 +281,7 @@ __*Code Line 25 *__
 
 The paper had images that were published separately from the paper. This is another informative plot based on the numbers above, which I presume served the researchers to visually verify their assumptions. However, this graph obscures the 30% difference between male and female published dissertations.  
 
-```{r published by gender}
+```{r barplot by gender, fig.width = 12, fig.height = 9}
 # Figure A2 in Supplementary Online Appendices 
 barplot(t(table(diss$year,diss$woman.strict)), col = c("lightblue", "mistyrose",
                 "lightcyan", "lavender"), legend.text=c("Man","Woman"),
@@ -370,7 +376,7 @@ an optional data frame containing the prevalence and/or content covariates.  If 
 KEEP?
 
 ---
-__*Code Line 38 *__  
+__*Line 38 *__  
 ## The actual STM building
 
 Considering that this code would run for an unspecified amount of time, I started it and looked for the way that I could check it was running, found in Stackoverflow (https://stackoverflow.com/questions/42888461/how-do-you-know-rstudio-is-running) that besides the chunk turning a red semaphore, I could look at the activity monitor.  
@@ -406,10 +412,10 @@ I cancelled the process and asked my husband if he had a more powerful computer 
 
 
 
-__*Code Line 53 *__  
-Created an object which estimated the amount of abstracts published by women (in this case woman.loose and woman.strict resulted in the same number), if the school had more than three publications.
+__*Line 53 *__  
+Creates an object which estimated the amount of abstracts published by women (in this case woman.loose and woman.strict resulted in the same number), if the school had more than three publications. Converged at 14 minutes.
 
-```{r K with controls, eval = FALSE}
+```{r K with controls}
 # Step 1: Estimate topics and prevalence from abstracts as a function of binary gender, 
 # controlling for school and year
 K <- 61
@@ -419,25 +425,20 @@ fit <- stm(out$documents, out$vocab, K =K,
 ```
 
 
-
-
-```{r}
-summary(fit)
-#summary(head(fit))
-```
-
-__*Code Line 5 *__  
+__*for Line 59*__  
 This doesn't run because the file was not provided. So I created file *Rep_frex-8-24.csv* out of the 
 csv file *output-for-figure* which is meant to provide for the Figure 1 plot, but hopefully also supplied the necessary information since *shorttopic* contains the same information that the required *label* entry in the code (inference following the logic of the paper's research design and the next lines of code).
 
-```{r check missing file}
-#Monica inserted code to make sure that fit contains the same topics as file output-for-figure.csv: Yes.
+```{r check missing file, eval = FALSE}
+#Monica inserted code to make sure that stm object "fit" contains the same topics as 
+#file output-for-figure.csv: Yes.
 summary(fit)
+summary(head(fit))
 fit_frex <- summary(fit)$frex
 ```
 
 
-__*Code Line 59 *__ 
+__*Line 59*__ 
 Re-created the file manually in csv by extracting the first two columns from *output-for-figure.csv* and 
 renaming it to *Rep_frex-8-24.csv* 
 Ran the code apparently without incidents
@@ -445,7 +446,7 @@ Ran the code apparently without incidents
 # These are the labels we assigned to the topics on the basis of the frex (Frequent-Exclusive) words from the model.
 # The topics themselves are just our shorthand, and people can interpret the topics any way they'd like (within reason).
 # labeled.topics <- read.csv("frex-8-24.csv",stringsAsFactors=F)
-labeled.topics <- read.csv(here("data", "frex-8-24.csv"), stringsAsFactors=F)
+labeled.topics <- read.csv(here("data", "Rep_frex-8-24.csv"), stringsAsFactors=F)
 labeled.topics <- labeled.topics$label
 
 # MP my file (2 columns) and theirs (8 columns) differ in structure, it will create a different sort
@@ -455,7 +456,7 @@ labeled.topics <- labeled.topics$label
 
 __*Code Line 64 *__  DONT KNOW WHAT THIS DOES
 
-```{r order the model}
+```{r frex}
 # # If you rerun the model, check to make sure the order still lines up -- it should, but if it doesn't, need to reorder
 #summary(fit)$frex==labeled.topics[,2:8]s
 
@@ -475,15 +476,15 @@ as a result of aggregation and the choice of categories."
 2:4 ~ var1 + s(var2)would indicate that we want to run three regressions on Topics 2, 3 and 4 with predictor variables *var1* and a b-spline transformed *var2*." ... "left hand side ...uses a vector if integers ...If left blank then the default of all topics is used".(CRAN) 
 So I left it blank.
 
-regression where topic-proportions are the outcome variable.
-```{r regressions}
+regression where topic-proportions are the outcome variable. 
+```{r regressions, eval = FALSE}
 # Runs a series of linear regressions.
 #  prep <- estimateEffect(1:length(subfields) ~ woman.strict+as.factor(School)+s(year), fit,
 prep <- estimateEffect(  ~ woman.strict+as.factor(School)+s(year), fit,
                        meta = out$meta, uncertainty = "Global")
 ```
 
-__*Code Line 74 *__   
+__*Line 74 *__   
 
 ```{r}
 # Extracts the regression tables.
@@ -501,7 +502,7 @@ sig <- sig[order(sig$coefficient),]
 ```
 
 
-
+__*Line 90*__ 
 ```{r}
 # Indicates whether the coefficient is positive and significant or negative and significant
 # (A relic of when we were basing the color on the significance for ease of viewing.)
@@ -509,13 +510,13 @@ sig$positive <- ifelse(sig$coefficient>0 & sig$p<=.05,1,0)
 sig$negative <- ifelse(sig$coefficient<0 & sig$p<=.05,1,0)
 ```
 
-
-```{r}
+__*Line 94*__ 
+```{r Figure1, fig.width = 12, fig.height = 9}
 # Plot
 par(mar=c(3,16,2,1))
 plot(sig$coefficient,c(1:length(sig$coefficient)),yaxt="n",pch=16,xlab="more likely among men                           more likely among women",ylab="",
      main="Gendered Topic Prevalences",xlim=c(-.02,.02),bty="n",xaxt="n",col=col,type="n")
-segments(y0=c(1:K),x0=-.03,x1=.02,lty=3,col="gray")
+segments(y0=c(1:K),x0=-.03,x1=.02,lty=3,col="red")
 points(sig$coefficient,c(1:length(sig$coefficient)),pch=16)
 axis(1,at=c(-0.015,0,0.015),c("more prevalent among men","equal","more prevalent among women"))
 segments(x0=sig$coefficient-1.96*sig$stderr,x1=sig$coefficient+1.96*sig$stderr,
@@ -523,7 +524,7 @@ segments(x0=sig$coefficient-1.96*sig$stderr,x1=sig$coefficient+1.96*sig$stderr,
 segments(y0=0,y1=length(sig$coefficient),x0=0,lty=2)
 axis(2,at=c(1:length(sig$coefficient)),sig$shorttopic,las=2,cex.axis=.8)
 
-# end of file
+# end of Research file
 ```
 
 
