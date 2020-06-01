@@ -15,7 +15,7 @@ The authors explored the hypothesis that women’s political careers are slower 
 Key, Ellen, 2019, "Replication Data for: You Research Like a Girl: Gendered Research Agendas and Their Implications", https://doi.org/10.7910/DVN/L55JBL, Harvard Dataverse, V1, UNF:6:7GnMVLlPMmfZN+QYSGE/Gg== [fileUNF] 
 
 ### Inferred research design
-While the research paper was published under two authors, the replication data has been uniquely mentioned under Ms Key, so all mention here must be understood as plural. They claimed that there's abundance of gendered research in STEM but less so in political science, summarily put, the following is the failure path 
+While the research paper was published under two authors, the replication data has been uniquely mentioned under Ms Key, so all mention here must be understood as plural. They claimed that there's abundance of gendered research in STEM but less so in political science, summarily put,  following is the failure path 
 
 #.letter format +, reduce somehow  
 
@@ -95,13 +95,14 @@ Once  I was ready to work with the code and to facilitate replicability, I opene
 
 I set up the Markdown directory to knit under my directory Source, since here is where I am saving the R files. I have the reference copy of the R code from the Harvard Dataverse in this folder, so I do not touch the original Data. 
 
-My very first problem was that Markdown does not recongnize the link to the DOI as part of the title so I had to comment it (see at the top of this Markdown file). Other links worked fine and chunks have given me no issue. In general I have followed this process to solve issues:
+My very first problem was that Markdown does not recongnize the link to the DOI as part of the YAML so I had to comment it. Other links worked fine and chunks have given me no issue. In general I have followed this process to solve issues:
 
 * Develop code in chunks and execute the chunks until they work, then move on.
 * knit the document regularly to check for errors. When I have an error:
     1. pay attention to the paths and home directories
     2. review the synthax
     3. split the code to its minimal elements and run individual  
+        *sometimes you need to run all the code together, so give this a try*
     4 run the code in the console, if this works  
       * restart R  
       * do 1 to 3, then run all the related chunks   
@@ -112,19 +113,24 @@ My very first problem was that Markdown does not recongnize the link to the DOI 
 
 ## Replication implementation
 
-To set global options that apply to every chunk in a file, call knitr::opts_chunk. Knitr will treat each option that passed on to knitr::opts_chunk$set as a global default that can be overwritten in individual chunk headers.
+Knitr will treat each option passed on to knitr::opts_chunk$set as a global default 
+that can be overwritten in individual chunk headers, as this is a replication, it is 
+set to TRUE. However, I do not want my tests printed.
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+SETUP EVAL FALSE to be able to check
+
+```{r setup, include = TRUE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, eval = TRUE)
 ```
 
 __*Code Line 1*__  
+
 By looking at the first line of code, I realized I needed the "here" function to building paths to my project files, so installing that package and loading the library in the console were the next thing to do 
 
-```{r}
+```{r here}
 #setwd("C:/Users/Jane Sumner/Dropbox/Gendered Research Agendas")
-#commented Line 1 and replaced the hard path with here()
 
+#commented Line 1 and replaced the hard path with here()
 #install.packages("here") 
 library(here)
 here::here("data")
@@ -135,7 +141,7 @@ For the replication script, R complained that the following packages were not in
 
 I had accepted compiling from CRAN sources, but had an error with RcppArmadillo because I do not have any compiler tools installed.  I ran again install packages and this time I answered "No", I have an older version now, but for MAC the recommendation from R Support is to take only compiled binaries as delivered from CRAN anyway. I'm commenting the code on the chunk so it is not running every time I knit.
 
-```{r}
+```{r load Packages}
 #install.packages(c("SnowballC", "stm", "tm"))
 library(stringr)  
 library(stm)  
@@ -192,7 +198,7 @@ Consider using ggplot for this, then use geom_histogram(binwidth=your bin width)
 https://stackoverflow.com/questions/29693102/how-to-control-plot-height-size-in-interactive-rmarkdown-with-shiny
 
 
-```{r}
+```{r per Year, eval=FALSE}
 # Not exactly Figure A1, because the replication data is subset to only the data we used in the analysis,
 # but it conveys similar information.
 hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light blue",
@@ -200,7 +206,7 @@ hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light blue
 ```
      
 
-```{r fig2, fig.width = 4, fig.height = 3}
+```{r Fig2, fig.width = 4, fig.height = 3}
 # Made histogram smaller, then changed to both "FD" and 13 bars, one bar for each year but the largest 
 # change is observable, only on first year so I understand why the kept it from half year to the next
 #knitr::opts_chunk$set(fig.width=6, fig.height=4)  
@@ -217,7 +223,7 @@ Tabulating the data for the variable gender and its frequency. Cross tabulated f
 Dichotomous = due to the possibility of genderless names, such as Shu.
 
 Loose or average probability of the author being female:
-```{r}
+```{r author gender}
 # Dichotomous coding of author gender, both loose (Pr(woman)>.5 => "woman") and  "woman",
 # strict (Pr(woman)>=.7 => Pr(woman)<=.3 => "man").
 table(diss$woman.loose,useNA="always")
@@ -226,7 +232,7 @@ round(table(diss$woman.loose,useNA="always")/sum(table(diss$woman.loose,
 ```
 
 Strict or above average probability of the author being female:
-```{r}
+```{r probability of female}
 table(diss$woman.strict,useNA="always")
 round(table(diss$woman.strict,useNA="always")/sum(table(diss$woman.strict,
                                                        useNA="always")),3)
@@ -253,7 +259,7 @@ Having compared the difference in both results, with a 10% difference in both se
 
 
 THESE EF NUMBERS 
-```{r}
+```{r differences}
 sum(table(diss$woman.strict,useNA="always"))
 659+973+176
 # this addition is 1808, less 176 is still higher than the 1543. percentages are ok though. #what to do?
@@ -267,14 +273,15 @@ The final value of all threee distributed dissertations is 99.9%
 
 __*Code Line 25 *__
 
-Apparently the paper had images that were published separately from the paper. This is another informative plot based on the numbers above, which I presume served the researchers to visually verify their assumptions. However, this graph obscures the 30% difference between male and female published dissertations.  
+The paper had images that were published separately from the paper. This is another informative plot based on the numbers above, which I presume served the researchers to visually verify their assumptions. However, this graph obscures the 30% difference between male and female published dissertations.  
 
-```{r}
+```{r published by gender}
 # Figure A2 in Supplementary Online Appendices 
-barplot(t(table(diss$year,diss$woman.strict)),legend.text=c("Man","Woman"),
-        main="Dissertations Filed With Proquest Per Year\nand Gender",ylim=c(0,250))
+barplot(t(table(diss$year,diss$woman.strict)), col = c("lightblue", "mistyrose",
+                "lightcyan", "lavender"), legend.text=c("Man","Woman"),
+        main="Dissertations Filed With Proquest Per Year\nand Gender",ylim=c(0,250),
+        border = "dark blue")
 ```
- 
  
 
 __*Code Line 30 *__
@@ -299,14 +306,6 @@ So I added it on to the chunk above (ca. line 143) and NLP got loaded as well. R
 # 1. Setting up the STM
 tx <- textProcessor(diss$Abstract,meta=diss)
 ```
-*Output:*  
-Building corpus... 
-Converting to Lower Case... 
-Removing punctuation... 
-Removing stopwords... 
-Removing numbers... 
-Stemming... 
-Creating Output... 
 
 I tried to knit here but it tells me it cannot find the function, though I can see *tx* in the environment. I executed the next line (2) without trouble.
 
@@ -321,16 +320,13 @@ By looking at the contents of documents (the data obtained from variable *"Abstr
 # 2. Setting up the STM
 out <- prepDocuments(tx$documents, tx$vocab, tx$meta, lower.thresh=15)
 ```
-*Output:*  
-Removing 10914 of 12598 terms (25968 of 167892 tokens) due to frequency 
-Your corpus now has 1543 documents, 1684 terms and 141924 tokens.
 
 "The stm package represents a text corpus in three parts: a documents list containing word indices x (St3) and their associated counts,5 a vocab  (St4) character vector containing the words associated with the word indices, and a metadata matrix containing document covariates." (St5) (stm docu)
 
 __Step 3__ Assigned the lists of the 1543 dissertations combination of words to object docs. 
 “Each document is represented as an integer matrix with two rows, and columns equal  to  the  number  of  unique  vocabulary  words  in  the  document.   The  first row contains the 1-indexed vocabulary entry and the second row contains the number of times that term appears” (CRAN p59) (https://cran.r-project.org/web/packages/stm/stm.pdf)
 
-```{r}
+```{r feed}
 # 3. Setting up the STM
 docs <- out$documents
 ```
@@ -339,7 +335,7 @@ View of *docs* matrix: ![](../output/stm3-docs.png)
 
 __Step4__ Assigned the words of the created vocabulary to a characer vector.
 
-```{r}
+```{r vocab}
 # 4. Setting up the STM
 vocab <- out$vocab
 
@@ -352,7 +348,7 @@ head(vocab)
 
 __Step5__ created data element with the selected document metadata, that is, very much the original file *"dissertation-data-clean.csv"*
 
-```{r}
+```{r metadata}
 # 5. Setting up the STM
 meta <-out$meta
 ```
@@ -379,21 +375,20 @@ __*Code Line 38 *__
 
 Considering that this code would run for an unspecified amount of time, I started it and looked for the way that I could check it was running, found in Stackoverflow (https://stackoverflow.com/questions/42888461/how-do-you-know-rstudio-is-running) that besides the chunk turning a red semaphore, I could look at the activity monitor.  
 
-```{r}
+```{r STM Topics, eval = FALSE}
 # # This part is how we determined the number of topics. I suggest not running it unless you're quite curious,
 # # as it takes forever. It'll also yield a slightly different number every time, just by the nature of simulation.
-# K.store <- NULL
-#  for(i in 1:100){
-#  K <- 0 #0
-#  fit <- stm(out$documents, out$vocab, K =K,
-#                        prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 5,
-#                        data = meta, init.type = "Spectral")
-#  K.store <- c(K.store,nrow(labelTopics(fit)$frex))
-#  
-#  }
-#  par(mar=c(4.1,4.1,4.1,1.1),mgp=c(2.1,.5,.5))
-#
-# hist(K.store,main="Discovered Topics",col="gray",xlab="number of #topics",breaks=seq(min(K.store)-.5,max(K.store)+.5,1))
+K.store <- NULL
+for(i in 1:100){
+K <- 0 #0
+fit <- stm(out$documents, out$vocab, K =K,
+                   prevalence =~ woman.strict+as.factor(School)+s(year), max.em.its = 5,                     data = meta, init.type = "Spectral")
+K.store <- c(K.store,nrow(labelTopics(fit)$frex))
+
+}
+par(mar=c(4.1,4.1,4.1,1.1),mgp=c(2.1,.5,.5))
+
+hist(K.store,main="Discovered Topics",col="gray",xlab="number of topics",breaks=seq(min(K.store)-.5,max(K.store)+.5,1))
 
 ```
 *Output ERROR*  
@@ -414,8 +409,7 @@ I cancelled the process and asked my husband if he had a more powerful computer 
 __*Code Line 53 *__  
 Created an object which estimated the amount of abstracts published by women (in this case woman.loose and woman.strict resulted in the same number), if the school had more than three publications.
 
-
-```{r}
+```{r K with controls, eval = FALSE}
 # Step 1: Estimate topics and prevalence from abstracts as a function of binary gender, 
 # controlling for school and year
 K <- 61
@@ -424,33 +418,46 @@ fit <- stm(out$documents, out$vocab, K =K,
            data = meta, init.type = "Spectral")
 ```
 
-__*Code Line 59 *__  
+
+
+
+```{r}
+summary(fit)
+#summary(head(fit))
+```
+
+__*Code Line 5 *__  
 This doesn't run because the file was not provided. So I created file *Rep_frex-8-24.csv* out of the 
 csv file *output-for-figure* which is meant to provide for the Figure 1 plot, but hopefully also supplied the necessary information since *shorttopic* contains the same information that the required *label* entry in the code (inference following the logic of the paper's research design and the next lines of code).
 
-```{r}
+```{r check missing file}
 #Monica inserted code to make sure that fit contains the same topics as file output-for-figure.csv: Yes.
 summary(fit)
 fit_frex <- summary(fit)$frex
 ```
 
+
+__*Code Line 59 *__ 
 Re-created the file manually in csv by extracting the first two columns from *output-for-figure.csv* and 
 renaming it to *Rep_frex-8-24.csv* 
 Ran the code apparently without incidents
-```{r}
+```{r Sections}
 # These are the labels we assigned to the topics on the basis of the frex (Frequent-Exclusive) words from the model.
 # The topics themselves are just our shorthand, and people can interpret the topics any way they'd like (within reason).
 # labeled.topics <- read.csv("frex-8-24.csv",stringsAsFactors=F)
-labeled.topics <- read.csv(here("data", "Rep_frex-8-24.csv"), stringsAsFactors=F)
+labeled.topics <- read.csv(here("data", "frex-8-24.csv"), stringsAsFactors=F)
 labeled.topics <- labeled.topics$label
-View(labeled.topics)
+
+# MP my file (2 columns) and theirs (8 columns) differ in structure, it will create a different sort
+#MPlabeled.topics <- read.csv(here("data", "Rep_frex-8-24.csv"), stringsAsFactors=F)
+#MPlabeled.topics <- MPlabeled.topics$label
 ```
 
-__*Code Line 64 *__  
+__*Code Line 64 *__  DONT KNOW WHAT THIS DOES
 
-```{r}
+```{r order the model}
 # # If you rerun the model, check to make sure the order still lines up -- it should, but if it doesn't, need to reorder
-# summary(fit)$frex==labeled.topics[,2:8]s
+#summary(fit)$frex==labeled.topics[,2:8]s
 
 frex <- apply(summary(fit)$frex,1,paste0,collapse=",")
 
@@ -458,25 +465,23 @@ frex <- apply(summary(fit)$frex,1,paste0,collapse=",")
 
 
 __*Code Line 70 *__   
-The following 
 
-
+This code is not working with *subfields*, according to the paper, one understands that sublabels are equal to the number of topics (i.e. 61).
 "Women are not equally distributed across the subfields. That said, the classifications of
 subfields also obscure a substantial amount of potential heterogeneity in research interests 
 as a result of aggregation and the choice of categories."
 
 *formula*  "A formula for the regression. It should have an integer or vector of numbers on the left-hand side and an equation with covariates on the right hand side. Details" ... "the model 
-2:4 ~ var1 + s(var2)would indicate that we want to run three regressions on Topics 2, 3 and 4 with predictor variables *var1* and a b-spline transformed *var2*." (CRAN)
+2:4 ~ var1 + s(var2)would indicate that we want to run three regressions on Topics 2, 3 and 4 with predictor variables *var1* and a b-spline transformed *var2*." ... "left hand side ...uses a vector if integers ...If left blank then the default of all topics is used".(CRAN) 
+So I left it blank.
 
-
-```{r}
+regression where topic-proportions are the outcome variable.
+```{r regressions}
 # Runs a series of linear regressions.
-#prep <- estimateEffect(1:length(subfields) ~ woman.strict+as.factor(School)+s(year), fit,
-prep <- estimateEffect(1:length(61) ~ woman.strict+as.factor(School)+s(year), fit,
+#  prep <- estimateEffect(1:length(subfields) ~ woman.strict+as.factor(School)+s(year), fit,
+prep <- estimateEffect(  ~ woman.strict+as.factor(School)+s(year), fit,
                        meta = out$meta, uncertainty = "Global")
 ```
-tried 0:1 Error in estimateEffect(0:length(1) ~ woman.strict + as.factor(School) + : Topics specified as response in formula must be a set of positive integers equal to or less than the number of topics in the model.
-
 
 __*Code Line 74 *__   
 

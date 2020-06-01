@@ -12,7 +12,6 @@ knitr::opts_chunk$set(echo = TRUE)
 ## 
 ```{r}
 #setwd("D:/Dropbox/Gendered Research Agendas/")
-
 #install.packages("here") 
 library(here)
 here::here("data")
@@ -40,3 +39,18 @@ axis(2,at=c(1:length(sig$coefficient)),sig$shorttopic,las=2,cex.axis=.8)
 # end of file
 ```
 
+Because I got a warning I looked at this:
+> Output created: Repl_plot-file.html
+> Warning message:
+> In doTryCatch(return(expr), name, parentenv, handler) :
+>  supplied color is neither numeric nor character
+
+I found a really old post (R 2.4 2007) (https://stat.ethz.ch/pipermail/r-help/2007-August/137848.html)
+that states this was a bug in lattice that should have been fixed. I loaded #lattice" but didn't close the warning.
+
+"Note that the last component 'fill' is a factor (which is "not numeric
+nor character", at least in a zen kind of way). I presume you are
+somehow protecting 'col' from becoming a factor, and that does not
+translate to 'fill'." 
+
+This happens directly in the function ecexution (binaries) and seems to be ignored by most people executing and posting their online plots.
