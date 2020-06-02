@@ -5,7 +5,30 @@ author: "Monica Perez Contreras on Key,Ellen (2019)"
 date: "5/16/2020"
 output: html_document
 ---
-```{r word count}
+
+Knitr will treat each option passed on to knitr::opts_chunk$set as a global default 
+that can be overwritten in individual chunk headers, as this is a replication, it is 
+set to TRUE. However, I do not want my tests printed.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+#use eval = FALSE for just knitting
+```
+
+__*Code Line 1*__  
+
+By looking at the first line of code, I realized I needed the "here" function to building paths to my project files, so installing that package and loading the library in the console were the next thing to do 
+
+```{r here, eval = TRUE}
+#setwd("C:/Users/Jane Sumner/Dropbox/Gendered Research Agendas")
+
+#commented Line 1 and replaced the hard path with here()
+#install.packages("here") 
+library(here)
+#here::here("data")
+```
+
+```{r word count, eval = TRUE}
 #install.packages(c("here", "remotes"))
 #remotes::install_github("benmarwick/wordcountaddin")
 
@@ -17,9 +40,6 @@ wordcountaddin::word_count((here("source", "Repl_ResearchLikeGirl.Rmd")))
 ## Introduction
 
 The authors explored the hypothesis that women’s political careers are slower to advance because they do not publish as much as men. By studying published dissertations, the authors identified that some research topics seem to be favoured by each gender and thus are also published with more frequency by top journals. While research has not found evidence of systematic bias on political research journals, the authors do find evidence of topic bias, despite it being proportional to dissertation research.
-
-### Citation
-Key, Ellen, 2019, "Replication Data for: You Research Like a Girl: Gendered Research Agendas and Their Implications", https://doi.org/10.7910/DVN/L55JBL, Harvard Dataverse, V1, UNF:6:7GnMVLlPMmfZN+QYSGE/Gg== [fileUNF] 
 
 ### Inferred research design
 While the research paper was published under two authors, the replication data has been uniquely mentioned under Ms Key, so all mention here must be understood as plural. They claimed that there's abundance of gendered research in STEM but less so in political science, summarily put,  following is the failure path 
@@ -118,30 +138,6 @@ My very first problem was that Markdown does not recongnize the link to the DOI 
 
 ## Replication implementation
 
-Knitr will treat each option passed on to knitr::opts_chunk$set as a global default 
-that can be overwritten in individual chunk headers, as this is a replication, it is 
-set to TRUE. However, I do not want my tests printed.
-
-SETUP EVAL FALSE to be able to check
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE) #, eval = TRUE)
-```
-
-__*Code Line 1*__  
-
-By looking at the first line of code, I realized I needed the "here" function to building paths to my project files, so installing that package and loading the library in the console were the next thing to do 
-
-```{r here}
-#setwd("C:/Users/Jane Sumner/Dropbox/Gendered Research Agendas")
-
-#commented Line 1 and replaced the hard path with here()
-#install.packages("here") 
-library(here)
-here::here("data")
-```
-
-
 For the replication script, R complained that the following packages were not installed, so I started there, though I did it in the console.  
 
 I had accepted compiling from CRAN sources, but had an error with RcppArmadillo because I do not have any compiler tools installed.  I ran again install packages and this time I answered "No", I have an older version now, but for MAC the recommendation from R Support is to take only compiled binaries as delivered from CRAN anyway. I'm commenting the code on the chunk so it is not running every time I knit.
@@ -182,7 +178,7 @@ I finally cleaned sessions, restarted Rstudio and it worked.
 Reading the csv file to create a data set is finally working, now that I added "data", so I can return the original code line of stringAsFactors = F. I assume the researchers were not planning to change the type of strings they were to use in the data frame. I noted that the here function must be closed after path and files, not after stringsAsFactors. 
 
 __*Line 8*__ 
-```{r}
+```{r, eval=TRUE}
 diss <- read.csv(here("data", "dissertation-data-clean.csv"), stringsAsFactors=F)
 ```
 
@@ -204,7 +200,7 @@ Consider using ggplot for this, then use geom_histogram(binwidth=your bin width)
 https://stackoverflow.com/questions/29693102/how-to-control-plot-height-size-in-interactive-rmarkdown-with-shiny
 
 
-```{r per Year, eval=FALSE}
+```{r per Year, eval = TRUE}
 # Not exactly Figure A1, because the replication data is subset to only the data we used in the analysis,
 # but it conveys similar information.
 hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light blue",
@@ -212,7 +208,7 @@ hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light blue
 ```
      
 
-```{r Fig2, fig.width = 4, fig.height = 3}
+```{r Fig2, eval = TRUE, fig.width = 4, fig.height = 3}
 # Made histogram smaller, then changed to both "FD" and 13 bars, one bar for each year but the largest 
 # change is observable, only on first year so I understand why the kept it from half year to the next
 #knitr::opts_chunk$set(fig.width=6, fig.height=4)  
@@ -281,7 +277,7 @@ __*Code Line 25 *__
 
 The paper had images that were published separately from the paper. This is another informative plot based on the numbers above, which I presume served the researchers to visually verify their assumptions. However, this graph obscures the 30% difference between male and female published dissertations.  
 
-```{r barplot by gender, fig.width = 12, fig.height = 9}
+```{r barplot by gender, eval = TRUE, fig.width = 12, fig.height = 9}
 # Figure A2 in Supplementary Online Appendices 
 barplot(t(table(diss$year,diss$woman.strict)), col = c("lightblue", "mistyrose",
                 "lightcyan", "lavender"), legend.text=c("Man","Woman"),
@@ -415,7 +411,7 @@ I cancelled the process and asked my husband if he had a more powerful computer 
 __*Line 53 *__  
 Creates an object which estimated the amount of abstracts published by women (in this case woman.loose and woman.strict resulted in the same number), if the school had more than three publications. Converged at 14 minutes.
 
-```{r K with controls}
+```{r K with controls, echo=FALSE, cache = TRUE, eval= FALSE}
 # Step 1: Estimate topics and prevalence from abstracts as a function of binary gender, 
 # controlling for school and year
 K <- 61
@@ -477,7 +473,7 @@ as a result of aggregation and the choice of categories."
 So I left it blank.
 
 regression where topic-proportions are the outcome variable. 
-```{r regressions, eval = FALSE}
+```{r regressions}
 # Runs a series of linear regressions.
 #  prep <- estimateEffect(1:length(subfields) ~ woman.strict+as.factor(School)+s(year), fit,
 prep <- estimateEffect(  ~ woman.strict+as.factor(School)+s(year), fit,
@@ -511,7 +507,7 @@ sig$negative <- ifelse(sig$coefficient<0 & sig$p<=.05,1,0)
 ```
 
 __*Line 94*__ 
-```{r Figure1, fig.width = 12, fig.height = 9}
+```{r Figure1, eval = FALSE, fig.width = 12, fig.height = 9}
 # Plot
 par(mar=c(3,16,2,1))
 plot(sig$coefficient,c(1:length(sig$coefficient)),yaxt="n",pch=16,xlab="more likely among men                           more likely among women",ylab="",
