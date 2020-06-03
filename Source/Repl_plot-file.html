@@ -372,13 +372,24 @@ summary {
 <div id="section" class="section level2">
 <h2></h2>
 <pre class="r"><code>#setwd(&quot;D:/Dropbox/Gendered Research Agendas/&quot;)
-#install.packages(&quot;here&quot;) 
+
+#install.packages(c(&quot;here&quot;, &quot;remotes&quot;))
+#remotes::install_github(&quot;benmarwick/wordcountaddin&quot;)
+
 library(here)</code></pre>
 <pre><code>## here() starts at /Users/msfogg/Documents/GitHub/RepLikeGirl</code></pre>
 <pre class="r"><code>here::here(&quot;data&quot;)</code></pre>
 <pre><code>## [1] &quot;/Users/msfogg/Documents/GitHub/RepLikeGirl/data&quot;</code></pre>
 <pre class="r"><code>#sig &lt;- read.csv(&quot;output-for-figure.csv&quot;)
 sig &lt;- read.csv(here(&quot;data&quot;, &quot;output-for-figure.csv&quot;))</code></pre>
+<pre class="r"><code>#wordcountaddin::word_count(&quot;source/Repl_plot-file.Rmd&quot;)
+wordcountaddin::word_count((here(&quot;source&quot;, &quot;Repl_plot-file.Rmd&quot;)))</code></pre>
+<pre><code>## For information on available language packages for 'koRpus', run
+## 
+##   available.koRpus.lang()
+## 
+## and see ?install.koRpus.lang()</code></pre>
+<pre><code>## [1] 106</code></pre>
 <pre class="r"><code>#windows(width=12,height=12) # I think this only works on PCs.
 #MP commented as it only works for PC, instead changed size in header of chunk or the graph displays incomplete in html.
 
@@ -388,10 +399,8 @@ jpeg(here(&quot;output&quot;, &quot;onlyFigure1.jpg&quot;))
 #MP changed segments (background) color to blue for contrast
 par(mar=c(3,16,2,1))
 plot(sig$coefficient,c(1:length(sig$coefficient)),yaxt=&quot;n&quot;,pch=16,xlab=&quot;more likely among men                           more likely among women&quot;,ylab=&quot;&quot;,
-     main=&quot;Gendered Topic Prevalences&quot;,xlim=c(-.02,.02),bty=&quot;n&quot;,xaxt=&quot;n&quot;,col=col,type=&quot;n&quot;)</code></pre>
-<pre><code>## Warning in plot.xy(xy, type, ...): supplied color is neither numeric nor
-## character</code></pre>
-<pre class="r"><code>segments(y0=c(1:61),x0=-.03,x1=.02,lty=3,col=&quot;blue&quot;)
+     main=&quot;Gendered Topic Prevalences&quot;,xlim=c(-.02,.02),bty=&quot;n&quot;,xaxt=&quot;n&quot;,col=col,type=&quot;n&quot;)
+segments(y0=c(1:61),x0=-.03,x1=.02,lty=3,col=&quot;blue&quot;)
 points(sig$coefficient,c(1:length(sig$coefficient)),pch=16)
 axis(1,at=c(-0.015,0,0.015),c(&quot;more prevalent among men&quot;,&quot;equal&quot;,&quot;more prevalent among women&quot;))
 segments(x0=sig$coefficient-1.96*sig$stderr,x1=sig$coefficient+1.96*sig$stderr,
