@@ -35,7 +35,7 @@ wordcountaddin::word_count((here("source", "Repl_plot-file.Rmd")))
 #MP commented as it only works for PC, instead changed size in header of chunk or the graph displays incomplete in html.
 
 # 1. Open jpeg file
-jpeg(here("output", "onlyFigure1.jpg"))
+#jpeg(here("output", "onlyPlotFigure1.jpg"))
 
 #MP changed segments (background) color to blue for contrast
 par(mar=c(3,16,2,1))
@@ -51,6 +51,7 @@ axis(2,at=c(1:length(sig$coefficient)),sig$shorttopic,las=2,cex.axis=.8)
 
 # end of file
 ```
+
 
 Because I got a warning I looked at this:
 > Output created: Repl_plot-file.html

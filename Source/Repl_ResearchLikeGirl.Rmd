@@ -21,8 +21,9 @@ ___
 I've added code and text to the chunks because of MacOS, RMarkdown and to avoid long runtimes. Initialized R Markdown document with global defaults  
 
 ```{r setup, include = TRUE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = FALSE)
-#used eval = FALSE for just knitting
+#USE eval = FALSE for just knitting
+
+knitr::opts_chunk$set(warning = FALSE, eval = TRUE)
 ```
 
 
@@ -158,7 +159,7 @@ hist(diss$year,main="Dissertations Filed with Proquest\nby Year",col="light blue
 ```
      
 This correction to calendar year shows that original histogram is better:
-```{r Fig2, eval = TRUE, fig.width = 4, fig.height = 3}
+```{r Fig2, eval = TRUE, fig.align = "center", fig.width = 4, fig.height = 3}
 # MP made histogram smaller, then changed to both "FD" and 13 bars, one bar for each year but the  
 # largest change is observable, only on first year so I understand why the kept it from half 
 # year to the next
@@ -267,7 +268,7 @@ __Step 3__ Assigned the lists of the 1543 dissertations combination of words to 
 docs <- out$documents
 ```
 
-View of *docs* matrix: ![](../output/stm3-docs.png)   
+View of *docs* matrix: ![](../images/stm3-docs.png)   
    
    
 __Step4__ Assigned the words of the created vocabulary to a characer vector
@@ -326,7 +327,7 @@ __*Line 53*__
 Created an object which estimated the amount of abstracts published by women (in this case woman.loose and woman.strict resulted in the same number) if the school had more than three publications. Converged at 14 minutes. This part gives problem for knitting as the object "fit" is often not found despite being in the environment.   
 *I have added cache = TRUE to try and overcome this, but I set eval to FALSE so I can knit.*
 
-```{r KwithControls, cache = TRUE, eval = FALSE}
+```{r KwithControls, echo = FALSE, eval = FALSE, cache = TRUE}
 # Step 1: Estimate topics and prevalence from abstracts as a function of binary gender, 
 # controlling for school and year
 K <- 61
@@ -378,7 +379,7 @@ This chunk estimates the exclusivity of using a recurrent word from the vocabula
 understand what "line the order" meant, but the *summary(fit)* line would not run with either my file or their file. This is probably why the topics in my graph are in a different order even if the curve is similar.
 
 
-```{r frex}
+```{r frex, cache = TRUE}
 # # If you rerun the model, check to make sure the order still lines up -- it should, but if it doesn't, need to reorder
 #summary(fit)$frex==labeled.topics[,2:8]s
 
@@ -449,9 +450,9 @@ __*Line 94*__
 Original plot for Figure 1. The solid lines are 95% confidence intervals. This plot will show a similar curve in the coefficients between female and male, but the order of the topics differs in at least 3 positions, making me wonder if there's a problem with the coefficient calculation.
 
 
-```{r Figure1, fig.width = 12, fig.height = 9}
-# 1. Open jpeg file
-# jpeg(here("output", "newFigure1.jpg"))
+```{r Figure1, echo = TRUE, fig.show = "hold", fig.height = 18, fig.width = 12}
+#1. Open jpeg file
+#jpeg(here("output", "newFigure1.jpg"))
 # Plot
 par(mar=c(3,16,2,1))
 plot(sig$coefficient,c(1:length(sig$coefficient)),yaxt="n",pch=16,xlab="more likely among men                           more likely among women",ylab="",
@@ -463,40 +464,44 @@ segments(x0=sig$coefficient-1.96*sig$stderr,x1=sig$coefficient+1.96*sig$stderr,
          y0=c(1:length(sig$coefficient)))
 segments(y0=0,y1=length(sig$coefficient),x0=0,lty=2)
 axis(2,at=c(1:length(sig$coefficient)),sig$shorttopic,las=2,cex.axis=.8)
+#dev.off()
 # end of Research file
 ```
    
+Figure 1 re-calculated  
    
-      
-      
-___
+   
+![](../output/newFigure1.jpg)     
+
+          
+___   
+
+###This section contains 494 words
 
 ## Section 3 - Individual features
 
-This section contains `r wordcountaddin::word_count((here("source", "Repl_ResearchLikeGirl.Rmd")))` words
-#487?
 
 I struggled with the naming convention for chunks, with knitting and with adapting syntax in chunks YAML, wordcount, loadPackages, dataset, Kwithcontrols, checkMissingFiles. 
 
-__Chunk setup:__ manipulated local and global options with knit to include source code as needed in the Markdown file with *echo*, avoid printing my own tests, *cache* large data runs and instead of commenting, avoid repetitive evaluations of chunks with *eval*, changed figures’ sizes.
+__Chunk setup:__ manipulated local and global options with knit to include source code as needed in the Markdown file with *echo*, avoid printing my own tests, *cache* large data runs and instead of commenting, avoid repetitive evaluations of chunks with *eval*, figures’ sizes.
 
-__Chunk here:__ facilitated paths with *here::here*
+__Chunk here:__ facilitated paths 
 
 __Chunk perYear:__ changed the colours on “histogram per Year” from *grey* to *blue*. Verified choice of the half year columns as they were more representative than calendar years.
 
-__Chunk barplotGender:__ Changed colours on barplot *published by gender* to indicate both gender and total (*border* dark blue)
+__Chunk barplotGender:__ Changed colours on barplot to indicate both gender and total (*border* dark blue)
 
-__Chunk differences:__ the calculation base for the dissertation probability table based by gender were different in the paper and in the code. I had to review it to confirm that the variance was minimal.
+__Chunk differences:__ the calculation samples for the dissertation probability table based by gender __were different in the paper and in the code. I had to review it to confirm that the variance was minimal .01%.__
 
-__Chunks prepText to metadata:__  stm Steps 1 to Step5 gave an error unless knitted all chunks at once.
+__Chunks prepText to metadata:__  stm Steps1 to Step5 gave an error unless all chunks knitted together.
 
-__Chunk checkMissingFile:__ I inserted code to make sure that fit contains the same topics as file output-for-figure.csv: Yes because the regressions ran and because I got the original file after the fact to compare.
+__Chunk checkMissingFile:__ inserted code to make sure that *fi*t contains the same topics as file *output-for-figure.csv*: _Yes it does__ because the regressions ran and because I got the original file after the fact to compare.
 
-__Chunk regressions:__ missing variable in the code, decided to adjust the formula by using total number of topics.
+__Chunk regressions:__ missing variable in the code, had to adjust the formula by using total number of topics.
 
 __Chunk Figure1:__ Saved file to disk, while graph is correct, not all 61 topics are displayed
 
-__Separate File *”Repl_plot-file.Rmd*:__ The researchers offered a separate file and dataset  for the main plot to be run. I configured this to run as per the provided metadata *output-for-figure.csv*. I didn't need to calculate the regressions anew, as the coefficients were already included in the data file. I used knitr(), here() and jpeg() functions.
+__Separate File *”Repl_plot-file.Rmd*:__ Revised and compiled extra file and dataset for the main plot to be run *output-for-figure.csv*. I didn't need to calculate the regressions anew, as the coefficients were already included in the data file. __The output is replicable and equal to the published figure.__
 
 __Chunk wordcount:__ added wordcountaddin() as specified in Syllabus.
    
@@ -507,13 +512,16 @@ ___
    
 The code must be understood and executed in combination with the paper as one of the main variables (hand coded labels) was excluded from the data. Overall, I do not believe the authors believed this has a negative connotation since all variables may at one point be considered confounders.
 
-The application of stm conforms to theory, but by the nature of the data and the model, replication requires setting and providing a seed argument for the random number generator, which was not done. Hence, the code is reproducible but not replicable, except for the plot Figure 1 *”Repl_plot-file.Rmd*  which, as mentioned above, was successfully replicated with identical results as in the paper. 
+The application of stm conforms to theory, but by the nature of the data and the model, replication requires setting and providing a seed argument for the random number generator, which was not done. __Hence, the code is reproducible but not replicable, except for the plot Figure 1 *”Repl_plot-file.Rmd*  which, as mentioned above, was successfully replicated with identical results as in the paper.__ 
 
-For future replication work I would definitely   
+For a Seminar paper (replication work) on this model I would definitely  
+
   * add a seed   
   * pursue the use of matched sections from a respected source (e.g. APSA) as was the original intention of the authors   
   * change some of the plots with ggplot for stm   
   * execute with Swiss dissertations   
   * try to avoid manual verification of the gender by name or improve the manual method   
+  * tidy code   
+  * insert more elegant features (e.g. ToC).   
 
 ### End of Replication and RMarkdown file.
