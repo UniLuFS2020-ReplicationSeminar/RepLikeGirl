@@ -1,3 +1,0 @@
-"0","# Figure A2 in Supplementary Online Appendices "
-"0","barplot(t(table(diss$year,diss$woman.strict)),legend.text=c(""Man"",""Woman""),"
-"0","        main=""Dissertations Filed With Proquest Per Year\nand Gender"",ylim=c(0,250))"

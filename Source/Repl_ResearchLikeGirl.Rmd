@@ -327,7 +327,7 @@ __*Line 53*__
 Created an object which estimated the amount of abstracts published by women (in this case woman.loose and woman.strict resulted in the same number) if the school had more than three publications. Converged at 14 minutes. This part gives problem for knitting as the object "fit" is often not found despite being in the environment.   
 *I have added cache = TRUE to try and overcome this, but I set eval to FALSE so I can knit.*
 
-```{r KwithControls, echo = FALSE, eval = FALSE, cache = TRUE}
+```{r KwithControls, echo = FALSE, eval = TRUE, cache = TRUE}
 # Step 1: Estimate topics and prevalence from abstracts as a function of binary gender, 
 # controlling for school and year
 K <- 61

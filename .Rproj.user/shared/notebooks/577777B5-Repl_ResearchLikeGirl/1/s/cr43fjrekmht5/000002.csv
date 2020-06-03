@@ -1,5 +1,0 @@
-"0","# Made histogram smaller, then changed to both ""FD"" and 13 bars, one bar for each year but the largest "
-"0","# change is observable, only on first year so I understand why the kept it from half year to the next"
-"0","#knitr::opts_chunk$set(fig.width=6, fig.height=4)  "
-"0","hist(diss$year,main=""Dissertations Filed with Proquest\nby Year"",col=""light green"","
-"0","     breaks=13,xlab=""year"")"
