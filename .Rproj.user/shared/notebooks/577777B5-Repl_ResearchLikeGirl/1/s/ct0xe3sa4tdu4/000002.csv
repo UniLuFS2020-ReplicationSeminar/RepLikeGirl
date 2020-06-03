@@ -1,0 +1,7 @@
+"0","here::here(""data"", ""dissertation-data-clean.csv"")"
+"1","[1]"
+"1"," ""/Users/msfogg/Documents/GitHub/RepLikeGirl/data/dissertation-data-clean.csv"""
+"1","
+"
+"0","#getwd() #in markdown I have source as dir, in the console, I have datanas the source, which is why it runs #there. In here, it doesn't even let me knit if I uncomment to create object diss"
+"0","#diss3 <- read.csv(""dissertation-data-clean.csv"")"

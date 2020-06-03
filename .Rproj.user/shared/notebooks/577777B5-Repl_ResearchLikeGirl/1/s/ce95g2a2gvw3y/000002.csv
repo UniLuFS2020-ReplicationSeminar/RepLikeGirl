@@ -1,0 +1,6 @@
+"0","#install.packages(c(""SnowballC"", ""stm""))"
+"0","#library(stringr)  "
+"0","#library(stm)  "
+"0","#library(SnowballC) "
+"0",""
+"0","#library(tidyverse) was not ran ???"

@@ -1,0 +1,9 @@
+"0","#install.packages(""here"") 
+#library(tidyverse) was not ran ....
+#library(here)
+here::here()
+"
+"1","[1]"
+"1"," ""/Users/msfogg/Documents/GitHub/RepLikeGirl"""
+"1","
+"
